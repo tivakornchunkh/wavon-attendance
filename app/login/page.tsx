@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { loginAction } from '../actions/auth.actions';
 import WavonLogo from '../../components/WavonLogo';
+import WavonHeroEmblem from '../../components/WavonHeroEmblem';
 import { LoginForm } from './LoginForm';
 import { APP_VERSION } from '../../src/version';
 
@@ -16,32 +17,25 @@ export default function LoginPage() {
 
       {/* App-Card Container (Matching Reference Mockup) */}
       <div className="w-full max-w-[430px] relative z-10 bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.08)] border border-zinc-200/90 overflow-hidden">
-        {/* Card Top: Brand Header & 3D Crystal Hero Banner */}
-        <div className="relative bg-gradient-to-b from-[#EDF5F1] via-[#F3FAF6] to-white pt-5 px-6 pb-2 overflow-hidden">
+        {/* Card Top: Brand Header & Cool 3D WAVON Emblem */}
+        <div className="relative bg-gradient-to-b from-[#EEF7F2] via-[#F4FAF6] to-white pt-6 px-6 pb-2 overflow-hidden">
           {/* Top Brand Bar */}
-          <div className="flex items-center justify-between relative z-10 mb-2">
+          <div className="flex items-center justify-between relative z-10 mb-3">
             <Link href="/" className="transition hover:opacity-90">
               <WavonLogo theme="light" size="sm" />
             </Link>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/80 text-emerald-800 border border-emerald-200/70 shadow-2xs backdrop-blur-xs">
+            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/90 text-emerald-800 border border-emerald-200/80 shadow-2xs backdrop-blur-xs">
               {APP_VERSION}
             </span>
           </div>
 
-          {/* 3D Hero Art Visual */}
-          <div className="relative w-full h-48 sm:h-52 my-1 rounded-2xl overflow-hidden flex items-center justify-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="/hero_crystal_3d.jpg"
-              alt="WAVON Sports 3D Crystal"
-              className="w-full h-full object-cover object-center transform hover:scale-105 transition-transform duration-700"
-            />
-            {/* Soft subtle bottom gradient feather */}
-            <div className="absolute inset-x-0 bottom-0 h-10 bg-gradient-to-t from-white via-white/40 to-transparent" />
+          {/* Cool 3D Cyber Emblem Centerpiece */}
+          <div className="py-2 flex justify-center">
+            <WavonHeroEmblem size="md" />
           </div>
 
           {/* Title & Subtitle */}
-          <div className="text-center pt-2 pb-1">
+          <div className="text-center pt-3 pb-1">
             <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">
               Login
             </h1>
