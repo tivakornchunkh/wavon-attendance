@@ -10,8 +10,7 @@ interface QuickSessionFormProps {
 export function QuickSessionForm({ action, defaultTodayStr }: QuickSessionFormProps) {
   const [durationHours, setDurationHours] = useState<number>(2);
   const [startTime, setStartTime] = useState<string>('16:00');
-  const [title, setTitle] = useState<string>('');
-  const [isCustomTitle, setIsCustomTitle] = useState<boolean>(false);
+  const [title, setTitle] = useState<string>('ตั้งชื่อรอบซ้อม');
   const titleInputId = useId();
 
   // Initialize with current local time on client mount
@@ -44,13 +43,6 @@ export function QuickSessionForm({ action, defaultTodayStr }: QuickSessionFormPr
   };
 
   const endTime = calculateEndTime(startTime, durationHours);
-
-  // Auto-sync default title unless user customizes it
-  useEffect(() => {
-    if (!isCustomTitle) {
-      setTitle(`ซ้อมด่วน ${startTime} น. (${durationHours} ชม.)`);
-    }
-  }, [startTime, durationHours, isCustomTitle]);
 
   const presetDurations = [1, 2, 3, 4, 5];
 
@@ -149,7 +141,7 @@ export function QuickSessionForm({ action, defaultTodayStr }: QuickSessionFormPr
         <div>
           <div className="flex items-center justify-between mb-1">
             <label htmlFor={titleInputId} className="block text-xs font-semibold text-zinc-300">
-              หัวข้อรอบซ้อมด่วน
+              ตั้งชื่อรอบซ้อม
             </label>
             <span className="text-[10px] text-zinc-400">เปลี่ยนชื่อได้ตามต้องการ</span>
           </div>
@@ -158,9 +150,9 @@ export function QuickSessionForm({ action, defaultTodayStr }: QuickSessionFormPr
             type="text"
             name="title"
             value={title}
+            placeholder="ตั้งชื่อรอบซ้อม"
             onChange={(e) => {
               setTitle(e.target.value);
-              setIsCustomTitle(true);
             }}
             required
             className="w-full px-3.5 py-2.5 text-xs sm:text-sm bg-zinc-900 border border-zinc-700 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500 min-h-[44px]"
