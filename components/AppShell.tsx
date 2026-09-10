@@ -199,33 +199,30 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
                 </p>
               </div>
             </div>
-            <Link
-              href="/login"
-              className="p-1.5 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition"
-              title="สลับผู้ใช้ หรือสลับสโมสร"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
-              </svg>
-            </Link>
+            <div className="w-2 h-2 rounded-full bg-emerald-500/80 shrink-0" title="ออนไลน์" />
           </div>
 
-          <div className="flex items-center gap-1">
-            <Link
-              href="/login"
-              className="flex-1 py-1.5 text-center text-[11px] font-medium text-zinc-400 hover:text-zinc-200 rounded-lg hover:bg-zinc-900 transition"
+          <form action={logoutAction} className="w-full">
+            <button
+              type="submit"
+              className="w-full py-2 px-3 rounded-xl bg-zinc-900/80 hover:bg-rose-950/30 text-zinc-400 hover:text-rose-300 border border-zinc-800/80 hover:border-rose-900/40 text-[11px] font-medium flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer group shadow-2xs active:scale-[0.99]"
             >
-              สลับบทบาท
-            </Link>
-            <form action={logoutAction} className="flex-1">
-              <button
-                type="submit"
-                className="w-full py-1.5 text-center text-[11px] font-medium text-rose-400/80 hover:text-rose-400 rounded-lg hover:bg-rose-500/10 transition cursor-pointer"
+              <svg
+                className="w-3.5 h-3.5 text-zinc-500 group-hover:text-rose-400 transition-colors shrink-0"
+                fill="none"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
               >
-                ออกจากระบบ
-              </button>
-            </form>
-          </div>
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              <span>ออกจากระบบ</span>
+            </button>
+          </form>
 
           <div className="pt-2 border-t border-zinc-800/60 flex items-center justify-between text-[11px] px-1">
             <button
@@ -284,13 +281,15 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
             >
               ⭐
             </button>
-            <Link
-              href="/login"
-              className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 active:bg-zinc-800"
+            <button
+              type="button"
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 active:bg-zinc-800 cursor-pointer"
+              title="ดูข้อมูลผู้ใช้และเมนู"
             >
               <span>👤</span>
               <span className="max-w-[70px] truncate">{session.user.name.split(' ')[0]}</span>
-            </Link>
+            </button>
           </div>
         </div>
 
@@ -410,21 +409,26 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
             </nav>
 
             {/* Drawer Footer Actions */}
-            <div className="p-4 border-t border-zinc-800 bg-[#0C0E12] space-y-2">
-              <Link
-                href="/login"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-200 text-xs font-semibold border border-zinc-800 transition min-h-[44px]"
-              >
-                <span>🔄</span>
-                <span>สลับผู้ใช้ / สลับสโมสร</span>
-              </Link>
+            <div className="p-4 border-t border-zinc-800 bg-[#0C0E12]">
               <form action={logoutAction} className="w-full">
                 <button
                   type="submit"
-                  className="w-full py-2.5 rounded-xl text-rose-400 text-xs font-medium hover:bg-rose-500/10 transition cursor-pointer min-h-[44px]"
+                  className="w-full py-3 px-4 rounded-xl bg-zinc-900/80 hover:bg-rose-950/40 text-zinc-300 hover:text-rose-300 border border-zinc-800/80 hover:border-rose-900/50 text-xs font-semibold flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer group shadow-2xs active:scale-[0.99] min-h-[46px]"
                 >
-                  ออกจากระบบ (Logout)
+                  <svg
+                    className="w-4 h-4 text-zinc-400 group-hover:text-rose-400 transition-colors shrink-0"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth="2"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                    />
+                  </svg>
+                  <span>ออกจากระบบ</span>
                 </button>
               </form>
             </div>
@@ -462,13 +466,18 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
 
             <div className="h-4 w-px bg-zinc-200" />
 
-            <Link
-              href="/login"
-              className="text-xs font-semibold text-zinc-700 hover:text-zinc-950 px-3 py-1.5 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition"
-              title="สลับสโมสรหรือเข้าสู่ระบบผู้ดูแล"
-            >
-              สลับผู้ใช้
-            </Link>
+            <form action={logoutAction}>
+              <button
+                type="submit"
+                className="text-xs font-semibold text-zinc-600 hover:text-rose-600 px-3 py-1.5 rounded-lg border border-zinc-200 hover:border-rose-200 hover:bg-rose-50/60 transition cursor-pointer flex items-center gap-1.5 shadow-2xs active:scale-95"
+                title="ออกจากระบบ"
+              >
+                <svg className="w-3.5 h-3.5 text-zinc-400 hover:text-rose-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                <span>ออกจากระบบ</span>
+              </button>
+            </form>
           </div>
         </div>
 
