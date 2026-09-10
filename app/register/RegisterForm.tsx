@@ -3,6 +3,7 @@
 import React, { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { registerAction } from '../actions/auth.actions';
+import { formatUserFriendlyError } from '../../src/lib/error-formatter';
 
 export default function RegisterForm() {
   const [clubName, setClubName] = useState('');
@@ -34,13 +35,17 @@ export default function RegisterForm() {
 
     startTransition(async () => {
       try {
-        await registerAction(formData);
-      } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง');
+        const res = await registerAction(formData);
+        if (!res.success) {
+          setError(res.error || 'เกิดข้อผิดพลาดในการลงทะเบียน');
+          return;
         }
+        if (res.redirectTo) {
+          window.location.href = res.redirectTo;
+        }
+      } catch (err: unknown) {
+        const friendly = formatUserFriendlyError(err, 'เกิดข้อผิดพลาดในการลงทะเบียน กรุณาลองใหม่อีกครั้ง');
+        if (friendly) setError(friendly);
       }
     });
   };

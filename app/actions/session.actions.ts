@@ -179,29 +179,33 @@ export async function selfCheckInAction(
   notes?: string,
   isPitchVerified = true
 ): Promise<{ success: boolean; message: string }> {
-  const session = await sessionRepo.findById(sessionId);
-  if (!session) {
-    throw new Error('ไม่พบข้อมูลรอบการฝึกซ้อมนี้');
-  }
+  try {
+    const session = await sessionRepo.findById(sessionId);
+    if (!session) {
+      return { success: false, message: 'ไม่พบข้อมูลรอบการฝึกซ้อมนี้' };
+    }
 
-  // ป้องกันการเช็คชื่อหากรอบถูกปิดแล้ว (3A)
-  if (session.isClosed === 1) {
-    throw new Error('รอบการฝึกซ้อมนี้ปิดรับการเช็คชื่อแล้ว กรุณาติดต่อโค้ชผู้ฝึกสอน');
-  }
+    // ป้องกันการเช็คชื่อหากรอบถูกปิดแล้ว (3A)
+    if (session.isClosed === 1) {
+      return { success: false, message: 'รอบการฝึกซ้อมนี้ปิดรับการเช็คชื่อแล้ว กรุณาติดต่อโค้ชผู้ฝึกสอน' };
+    }
 
-  // ป้องกันการแอบกด "เข้าซ้อม" จากที่บ้านหากไม่ได้สแกนที่สนามจริง (4A)
-  if (status === 'PRESENT' && !isPitchVerified) {
-    throw new Error('ต้องสแกน QR Code ริมสนามจริงเพื่อเช็คชื่อเข้าซ้อม (หากไม่ได้มาสนาม สามารถกดแท็บ "แจ้งลาซ้อม" ได้ทันที)');
-  }
+    // ป้องกันการแอบกด "เข้าซ้อม" จากที่บ้านหากไม่ได้สแกนที่สนามจริง (4A)
+    if (status === 'PRESENT' && !isPitchVerified) {
+      return {
+        success: false,
+        message: 'ต้องสแกน QR Code ริมสนามจริงเพื่อเช็คชื่อเข้าซ้อม (หากไม่ได้มาสนาม สามารถกดแท็บ "แจ้งลาซ้อม" ได้ทันที)',
+      };
+    }
 
-  const athlete = await athleteRepo.findById(athleteId);
-  if (!athlete) {
-    throw new Error('ไม่พบข้อมูลนักกีฬาในระบบ');
-  }
+    const athlete = await athleteRepo.findById(athleteId);
+    if (!athlete) {
+      return { success: false, message: 'ไม่พบข้อมูลนักกีฬาในระบบ' };
+    }
 
-  if (athlete.teamId !== session.teamId) {
-    throw new Error('นักกีฬาไม่ได้สังกัดในสโมสรของรอบฝึกซ้อมนี้');
-  }
+    if (athlete.teamId !== session.teamId) {
+      return { success: false, message: 'นักกีฬาไม่ได้สังกัดในสโมสรของรอบฝึกซ้อมนี้' };
+    }
 
   const noteText = notes && notes.trim()
     ? notes.trim()
@@ -226,10 +230,17 @@ export async function selfCheckInAction(
   revalidatePath('/sessions');
   revalidatePath('/');
 
-  return {
-    success: true,
-    message: status === 'PRESENT' ? 'เช็คชื่อเข้าซ้อมเรียบร้อยแล้ว!' : 'บันทึกการแจ้งลาซ้อมเรียบร้อยแล้ว',
-  };
+    return {
+      success: true,
+      message: status === 'PRESENT' ? 'เช็คชื่อเข้าซ้อมเรียบร้อยแล้ว!' : 'บันทึกการแจ้งลาซ้อมเรียบร้อยแล้ว',
+    };
+  } catch (err: unknown) {
+    console.error('selfCheckInAction error:', err);
+    return {
+      success: false,
+      message: 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง หรือติดต่อผู้ฝึกสอน',
+    };
+  }
 }
 
 /**

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useTransition } from 'react';
 import { selfCheckInAction } from '../../actions/session.actions';
+import { formatUserFriendlyError } from '../../../src/lib/error-formatter';
 
 interface Athlete {
   id: string;
@@ -173,13 +174,18 @@ export default function AthleteCheckInView({
 
     startTransition(async () => {
       try {
-        await selfCheckInAction(
+        const res = await selfCheckInAction(
           session.id,
           athleteToSubmit.id,
           activeTab,
           finalReason,
           pitchVerifiedState
         );
+
+        if (!res.success) {
+          showToast(res.message, 'error');
+          return;
+        }
 
         // Update local state instantly
         setAttendances((prev) => ({
@@ -211,7 +217,7 @@ export default function AthleteCheckInView({
         setSelectedAthlete(null);
         setCustomLeaveReason('');
       } catch (err: unknown) {
-        showToast(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการบันทึก', 'error');
+        showToast(formatUserFriendlyError(err, 'เกิดข้อผิดพลาดในการบันทึกข้อมูล กรุณาลองใหม่อีกครั้ง'), 'error');
       }
     });
   };

@@ -2,32 +2,61 @@
 
 import React, { useState, useTransition } from 'react';
 import WavonLogo from '../../components/WavonLogo';
+import { formatUserFriendlyError } from '../../src/lib/error-formatter';
+import { AuthActionResult } from '../actions/auth.actions';
 
 interface LoginFormProps {
-  loginAction: (formData: FormData) => Promise<void>;
+  loginAction: (formData: FormData) => Promise<AuthActionResult>;
 }
 
 export function LoginForm({ loginAction }: LoginFormProps) {
   const [isPending, startTransition] = useTransition();
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [errorField, setErrorField] = useState<'username' | 'password' | 'general' | null>(null);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setErrorMessage(null);
-    const formData = new FormData(e.currentTarget);
+    setErrorField(null);
+
+    const formData = new FormData();
+    formData.append('username', username.trim());
+    formData.append('password', password);
 
     startTransition(async () => {
       try {
-        await loginAction(formData);
-      } catch (err: unknown) {
-        const error = err as { message?: string; digest?: string };
-        // Next.js redirect internally throws an error with NEXT_REDIRECT digest
-        if (error?.message?.includes('NEXT_REDIRECT') || error?.digest?.includes('NEXT_REDIRECT')) {
+        const res = await loginAction(formData);
+
+        if (!res.success) {
+          setErrorMessage(res.error || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+          setErrorField(res.field || 'general');
           return;
         }
-        setErrorMessage(error?.message || 'เกิดข้อผิดพลาดในการเข้าสู่ระบบ');
+
+        if (res.redirectTo) {
+          window.location.href = res.redirectTo;
+        }
+      } catch (err: unknown) {
+        const friendlyMsg = formatUserFriendlyError(
+          err,
+          'เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์ กรุณาลองใหม่อีกครั้ง'
+        );
+        if (friendlyMsg) {
+          setErrorMessage(friendlyMsg);
+          setErrorField('general');
+        }
       }
     });
+  };
+
+  const handleFillDemo = (demoUser: string, demoPass: string) => {
+    setUsername(demoUser);
+    setPassword(demoPass);
+    setErrorMessage(null);
+    setErrorField(null);
   };
 
   return (
@@ -62,47 +91,95 @@ export function LoginForm({ loginAction }: LoginFormProps) {
         </div>
       )}
 
-      {/* Error Alert Box */}
+      {/* Clear, Informative Error Alert Box */}
       {errorMessage && (
-        <div className="mb-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs font-semibold flex items-center gap-2 animate-toast">
-          <span>⚠</span>
-          <span>{errorMessage}</span>
+        <div className="mb-5 p-4 rounded-2xl bg-rose-50/90 border-2 border-rose-300 text-rose-900 shadow-sm animate-toast space-y-2">
+          <div className="flex items-start gap-2.5">
+            <span className="text-lg shrink-0 leading-none mt-0.5">⚠️</span>
+            <div className="space-y-1 text-xs">
+              <p className="font-black text-rose-900 leading-snug">
+                {errorMessage}
+              </p>
+              {errorField === 'username' && (
+                <p className="text-[11px] text-rose-700 font-medium">
+                  💡 หากยังไม่เคยมีบัญชี สามารถกดปุ่ม <strong>&quot;เปิดสโมสรใหม่&quot;</strong> ด้านล่างเพื่อเริ่มใช้งานได้ฟรีทันที
+                </p>
+              )}
+              {errorField === 'password' && (
+                <p className="text-[11px] text-rose-700 font-medium">
+                  💡 ตรวจสอบว่าปุ่ม <strong>Caps Lock</strong> เปิดค้างอยู่หรือไม่ หรือกดดูบัญชีทดสอบเริ่มต้นด้านล่าง
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
-          <label className="block text-xs font-bold text-zinc-700 mb-1.5">
-            ชื่อผู้ใช้งาน (Username)
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-bold text-zinc-700">
+              ชื่อผู้ใช้งาน (Username) <span className="text-rose-500">*</span>
+            </label>
+            {errorField === 'username' && (
+              <span className="text-[11px] font-bold text-rose-600 animate-pulse">
+                ✕ ตรวจสอบชื่อผู้ใช้
+              </span>
+            )}
+          </div>
           <input
             type="text"
             name="username"
+            value={username}
+            onChange={(e) => {
+              setUsername(e.target.value);
+              if (errorField === 'username') setErrorField(null);
+            }}
             required
             disabled={isPending}
-            placeholder="กรอกชื่อผู้ใช้งาน"
-            className="w-full text-xs sm:text-sm px-4 py-3 rounded-xl border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 bg-zinc-50/50 min-h-[44px] disabled:opacity-60"
+            placeholder="เช่น coach_wavon, coach_thunder"
+            className={`w-full text-xs sm:text-sm px-4 py-3 rounded-xl border transition min-h-[46px] disabled:opacity-60 focus:outline-none ${
+              errorField === 'username'
+                ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/30'
+                : 'border-zinc-300 focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 bg-zinc-50/50'
+            }`}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-zinc-700 mb-1.5">
-            รหัสผ่าน (Password)
-          </label>
+          <div className="flex items-center justify-between mb-1.5">
+            <label className="block text-xs font-bold text-zinc-700">
+              รหัสผ่าน (Password) <span className="text-rose-500">*</span>
+            </label>
+            {errorField === 'password' && (
+              <span className="text-[11px] font-bold text-rose-600 animate-pulse">
+                ✕ รหัสผ่านไม่ถูกต้อง
+              </span>
+            )}
+          </div>
           <input
             type="password"
             name="password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (errorField === 'password') setErrorField(null);
+            }}
             required
             disabled={isPending}
             placeholder="กรอกรหัสผ่าน"
-            className="w-full text-xs sm:text-sm px-4 py-3 rounded-xl border border-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 bg-zinc-50/50 min-h-[44px] disabled:opacity-60"
+            className={`w-full text-xs sm:text-sm px-4 py-3 rounded-xl border transition min-h-[46px] disabled:opacity-60 focus:outline-none ${
+              errorField === 'password'
+                ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/30'
+                : 'border-zinc-300 focus:ring-2 focus:ring-zinc-900 focus:border-zinc-900 bg-zinc-50/50'
+            }`}
           />
         </div>
 
         <button
           type="submit"
           disabled={isPending}
-          className="w-full mt-2 px-4 py-3 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition cursor-pointer min-h-[46px] flex items-center justify-center gap-2 disabled:opacity-75"
+          className="w-full mt-2 px-4 py-3 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition cursor-pointer min-h-[46px] flex items-center justify-center gap-2 disabled:opacity-75 active:scale-[0.99]"
         >
           {isPending ? (
             <>
@@ -120,6 +197,60 @@ export function LoginForm({ loginAction }: LoginFormProps) {
           )}
         </button>
       </form>
+
+      {/* Demo Accounts Quick-Fill Helper Accordion */}
+      <div className="mt-4 pt-3 border-t border-zinc-100">
+        <button
+          type="button"
+          onClick={() => setShowDemoAccounts(!showDemoAccounts)}
+          className="w-full text-left flex items-center justify-between text-[11px] font-bold text-zinc-500 hover:text-zinc-800 transition py-1"
+        >
+          <span className="flex items-center gap-1.5">
+            <span>🔑</span>
+            <span>ดูรายชื่อบัญชีทดสอบระบบ (Demo Accounts)</span>
+          </span>
+          <span>{showDemoAccounts ? '▲' : '▼'}</span>
+        </button>
+
+        {showDemoAccounts && (
+          <div className="mt-2.5 p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 text-[11px] animate-fade-in">
+            <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
+              แตะเพื่อกรอกข้อมูลทดสอบอัตโนมัติ (1-Click Auto-Fill):
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => handleFillDemo('coach_wavon', 'pass1234')}
+                className="p-2 rounded-lg bg-white border border-zinc-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition"
+              >
+                <div className="font-bold text-zinc-900">WAVON FC</div>
+                <div className="text-[10px] text-zinc-500 font-mono">coach_wavon</div>
+                <div className="text-[9px] text-emerald-600 font-semibold mt-0.5">pass1234</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFillDemo('coach_thunder', 'pass1234')}
+                className="p-2 rounded-lg bg-white border border-zinc-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition"
+              >
+                <div className="font-bold text-zinc-900">THUNDER CLUB</div>
+                <div className="text-[10px] text-zinc-500 font-mono">coach_thunder</div>
+                <div className="text-[9px] text-emerald-600 font-semibold mt-0.5">pass1234</div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => handleFillDemo('admin', 'admin1234')}
+                className="p-2 rounded-lg bg-white border border-zinc-200 hover:border-purple-400 hover:bg-purple-50/40 text-left transition"
+              >
+                <div className="font-bold text-zinc-900">ผู้ดูแล (Admin)</div>
+                <div className="text-[10px] text-zinc-500 font-mono">admin</div>
+                <div className="text-[9px] text-purple-600 font-semibold mt-0.5">admin1234</div>
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </>
   );
 }

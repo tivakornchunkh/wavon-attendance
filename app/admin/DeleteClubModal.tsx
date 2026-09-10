@@ -2,6 +2,7 @@
 
 import React, { useState, useTransition } from 'react';
 import { deleteClubAction } from '../actions/auth.actions';
+import { formatUserFriendlyError } from '../../src/lib/error-formatter';
 
 interface DeleteClubModalProps {
   teamId: string;
@@ -44,14 +45,15 @@ export default function DeleteClubModal({
 
     startTransition(async () => {
       try {
-        await deleteClubAction(teamId, typedName);
+        const res = await deleteClubAction(teamId, typedName);
+        if (!res.success) {
+          setError(res.error || 'เกิดข้อผิดพลาดในการลบสโมสร');
+          return;
+        }
         setIsOpen(false);
       } catch (err: unknown) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('เกิดข้อผิดพลาดในการลบสโมสร');
-        }
+        const friendly = formatUserFriendlyError(err, 'เกิดข้อผิดพลาดในการลบสโมสร กรุณาลองใหม่อีกครั้ง');
+        if (friendly) setError(friendly);
       }
     });
   };
