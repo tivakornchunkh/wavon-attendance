@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { loginAction } from '../actions/auth.actions';
 import WavonLogo from '../../components/WavonLogo';
 import { LoginForm } from './LoginForm';
@@ -27,6 +28,20 @@ export default function LoginPage() {
           </h2>
 
           <LoginForm loginAction={loginAction} />
+
+          {/* New Club Self-Registration Link */}
+          <div className="mt-5 pt-5 border-t border-zinc-100 text-center">
+            <p className="text-xs text-zinc-500 mb-2.5">
+              ยังไม่มีสโมสรในระบบ?
+            </p>
+            <Link
+              href="/register"
+              className="w-full py-3 px-4 rounded-xl bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 text-xs sm:text-sm font-black transition flex items-center justify-center gap-2"
+            >
+              <span>✨</span>
+              <span>เปิดสโมสรใหม่ / สมัครสมาชิกโค้ชฟรี</span>
+            </Link>
+          </div>
 
           {/* Security & Access Notice */}
           <div className="mt-6 pt-5 border-t border-zinc-100 space-y-2.5 text-[11px]">

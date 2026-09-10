@@ -83,7 +83,16 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
       </div>
 
       {/* Interactive Check-in Roster */}
-      <CheckInRoster sessionId={sessionId} initialRoster={roster} />
+      <CheckInRoster
+        sessionId={sessionId}
+        initialRoster={roster}
+        sessionDetails={{
+          title: session.title,
+          date: session.date,
+          startTime: session.startTime,
+          endTime: session.endTime,
+        }}
+      />
 
       {/* Audit Logs Table (ประวัติการแก้ไขสถานะย้อนหลัง) */}
       <div className="bg-white rounded-2xl border border-zinc-200/80 overflow-hidden shadow-xs">

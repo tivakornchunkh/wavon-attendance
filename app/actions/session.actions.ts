@@ -120,3 +120,55 @@ export async function cancelSessionAction(sessionId: string): Promise<void> {
   redirect('/sessions');
 }
 
+/**
+ * นักกีฬาสแกน QR เช็คชื่อเข้าซ้อม หรือแจ้งลาซ้อมด้วยตนเอง (ไม่ต้องล็อกอิน)
+ */
+export async function selfCheckInAction(
+  sessionId: string,
+  athleteId: string,
+  status: 'PRESENT' | 'LEAVE',
+  notes?: string
+): Promise<{ success: boolean; message: string }> {
+  const session = await sessionRepo.findById(sessionId);
+  if (!session) {
+    throw new Error('ไม่พบข้อมูลรอบการฝึกซ้อมนี้');
+  }
+
+  const athlete = await athleteRepo.findById(athleteId);
+  if (!athlete) {
+    throw new Error('ไม่พบข้อมูลนักกีฬาในระบบ');
+  }
+
+  if (athlete.teamId !== session.teamId) {
+    throw new Error('นักกีฬาไม่ได้สังกัดในสโมสรของรอบฝึกซ้อมนี้');
+  }
+
+  const noteText = notes && notes.trim()
+    ? notes.trim()
+    : status === 'PRESENT'
+    ? 'สแกน QR เช็คชื่อตนเอง'
+    : 'แจ้งลาซ้อมผ่านระบบ';
+
+  await attendanceRepo.batchUpsert(
+    sessionId,
+    session.createdBy,
+    [
+      {
+        athleteId,
+        status: status as AttendanceStatus,
+        notes: noteText,
+      },
+    ]
+  );
+
+  revalidatePath(`/checkin/${sessionId}`);
+  revalidatePath(`/sessions/${sessionId}`);
+  revalidatePath('/sessions');
+  revalidatePath('/');
+
+  return {
+    success: true,
+    message: status === 'PRESENT' ? 'เช็คชื่อเข้าซ้อมเรียบร้อยแล้ว!' : 'บันทึกการแจ้งลาซ้อมเรียบร้อยแล้ว',
+  };
+}
+

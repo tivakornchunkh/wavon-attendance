@@ -16,7 +16,7 @@ export function createTestDb() {
 
     CREATE TABLE users (
       id TEXT PRIMARY KEY,
-      team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+      team_id TEXT REFERENCES teams(id) ON DELETE CASCADE,
       name TEXT NOT NULL,
       username TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,

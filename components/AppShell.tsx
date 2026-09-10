@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import WavonLogo from './WavonLogo';
+import UserGuideModal from './UserGuideModal';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -45,10 +46,10 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
     };
   }, [isMobileMenuOpen]);
 
-  // Clean Standalone Layout for Login Page (No sidebars, headers, or navbars)
-  if (pathname === '/login') {
+  // Clean Standalone Layout for Login, Register, and Public Check-In Pages (No sidebars, headers, or navbars)
+  if (pathname === '/login' || pathname === '/register' || pathname.startsWith('/checkin')) {
     return (
-      <main className="min-h-screen bg-[#F8FAFC] flex flex-col justify-center">
+      <main className="min-h-screen bg-[#F8FAFC]">
         {children}
       </main>
     );
@@ -167,6 +168,10 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
               </div>
             </Link>
           ))}
+
+          <div className="pt-2 mt-2 border-t border-zinc-800/60">
+            <UserGuideModal />
+          </div>
         </nav>
 
         {/* User Profile & Actions Footer */}
@@ -329,6 +334,10 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
                   </div>
                 </Link>
               ))}
+
+              <div className="pt-2 mt-2 border-t border-zinc-800/60">
+                <UserGuideModal />
+              </div>
             </nav>
 
             {/* Drawer Footer Actions */}

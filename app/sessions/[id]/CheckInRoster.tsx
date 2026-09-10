@@ -6,6 +6,7 @@ import { AttendanceStatus } from '../../../src/core/domain/attendance';
 import { Athlete } from '../../../src/core/domain/athlete';
 import { Toast } from '../../../components/Toast';
 import { playTactileFeedback } from '../../../components/feedback';
+import QrCheckInModal from './QrCheckInModal';
 
 interface RosterItem {
   athlete: Athlete;
@@ -18,12 +19,18 @@ interface RosterItem {
 interface CheckInRosterProps {
   sessionId: string;
   initialRoster: RosterItem[];
+  sessionDetails?: {
+    title: string;
+    date: string;
+    startTime: string;
+    endTime: string;
+  };
 }
 
 type SortField = 'name' | 'code';
 type SortOrder = 'asc' | 'desc';
 
-export default function CheckInRoster({ sessionId, initialRoster }: CheckInRosterProps) {
+export default function CheckInRoster({ sessionId, initialRoster, sessionDetails }: CheckInRosterProps) {
   const [statuses, setStatuses] = useState<Record<string, AttendanceStatus | ''>>(() => {
     const map: Record<string, AttendanceStatus | ''> = {};
     for (const item of initialRoster) {
@@ -177,6 +184,17 @@ export default function CheckInRoster({ sessionId, initialRoster }: CheckInRoste
               <span>{soundEnabled ? '🔊' : '🔇'}</span>
               <span className="hidden md:inline">{soundEnabled ? 'เสียงเปิด' : 'เสียงปิด'}</span>
             </button>
+
+            {/* Athlete QR Check-In Modal Trigger */}
+            <QrCheckInModal
+              sessionId={sessionId}
+              sessionTitle={sessionDetails?.title || 'รอบการฝึกซ้อม'}
+              sessionDate={sessionDetails?.date || ''}
+              sessionTime={`${sessionDetails?.startTime || ''} - ${sessionDetails?.endTime || ''}`}
+              livePresent={livePresent}
+              liveLeave={liveLeave}
+              totalAthletes={initialRoster.length}
+            />
 
             <button
               type="button"

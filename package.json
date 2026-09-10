@@ -12,9 +12,11 @@
     "simulate": "tsx scripts/demo-simulation.ts"
   },
   "dependencies": {
+    "@types/qrcode": "^1.5.6",
     "better-sqlite3": "^13.0.3",
     "drizzle-orm": "^0.45.2",
     "next": "16.3.4",
+    "qrcode": "^1.5.4",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.5.4"

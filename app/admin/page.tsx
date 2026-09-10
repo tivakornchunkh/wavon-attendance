@@ -4,6 +4,7 @@ import { teams, users, athletes, trainingSessions } from '../../src/server/db/sc
 import { eq, count } from 'drizzle-orm';
 import { getCurrentSession } from '../../src/server/helpers/auth';
 import { createClubAction, switchClubAction } from '../actions/auth.actions';
+import DeleteClubModal from './DeleteClubModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -126,21 +127,30 @@ export default async function AdminPage() {
                     </div>
                   </div>
 
-                  <div className="mt-5 pt-3 border-t border-zinc-100">
-                    {isCurrentlyActive ? (
-                      <span className="w-full py-2.5 rounded-xl bg-zinc-100 text-zinc-500 text-xs font-bold text-center block">
-                        กำลังเลือกใช้งานสโมสรนี้
-                      </span>
-                    ) : (
-                      <form action={switchClubAction.bind(null, team.id)}>
-                        <button
-                          type="submit"
-                          className="w-full py-2.5 rounded-xl bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white text-xs font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center gap-1.5"
-                        >
-                          <span>🚀 สลับเข้าดูสโมสรนี้</span>
-                        </button>
-                      </form>
-                    )}
+                  <div className="mt-5 pt-3 border-t border-zinc-100 flex items-center gap-2">
+                    <div className="flex-1">
+                      {isCurrentlyActive ? (
+                        <span className="w-full py-2.5 rounded-xl bg-zinc-100 text-zinc-500 text-xs font-bold text-center block">
+                          กำลังเลือกใช้งานสโมสรนี้
+                        </span>
+                      ) : (
+                        <form action={switchClubAction.bind(null, team.id)}>
+                          <button
+                            type="submit"
+                            className="w-full py-2.5 rounded-xl bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white text-xs font-bold transition cursor-pointer min-h-[42px] flex items-center justify-center gap-1.5"
+                          >
+                            <span>🚀 สลับเข้าดูสโมสรนี้</span>
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                    <DeleteClubModal
+                      teamId={team.id}
+                      teamName={team.name}
+                      athleteCount={team.athleteCount}
+                      sessionCount={team.sessionCount}
+                      isOnlyClub={allTeams.length <= 1}
+                    />
                   </div>
                 </div>
               );

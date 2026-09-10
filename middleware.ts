@@ -6,11 +6,13 @@ export const USER_COOKIE = 'wavon_user_id';
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Allow static files, Next.js internal routes, login page, and public assets
+  // Allow static files, Next.js internal routes, login, register, check-in, and public assets
   if (
     pathname.startsWith('/_next') ||
     pathname.startsWith('/api') ||
     pathname === '/login' ||
+    pathname === '/register' ||
+    pathname.startsWith('/checkin') ||
     pathname === '/icon.svg' ||
     pathname === '/manifest.json' ||
     pathname === '/favicon.ico'
