@@ -270,11 +270,20 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
             </span>
           </Link>
 
-          {/* Right Action: User Icon / Team */}
-          <div className="flex items-center gap-2">
+          {/* Right Action: Credits & User Icon */}
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => setShowCredits(true)}
+              className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 text-amber-400 hover:text-amber-300 active:bg-zinc-800 flex items-center justify-center text-sm transition cursor-pointer shadow-2xs"
+              title="ข้อมูลผู้พัฒนา (Credits)"
+              aria-label="ข้อมูลผู้พัฒนา"
+            >
+              ⭐
+            </button>
             <Link
               href="/login"
-              className="px-2.5 py-1.5 rounded-lg bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 active:bg-zinc-800"
+              className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 active:bg-zinc-800"
             >
               <span>👤</span>
               <span className="max-w-[70px] truncate">{session.user.name.split(' ')[0]}</span>
@@ -370,8 +379,30 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
                 </Link>
               ))}
 
-              <div className="pt-2 mt-2 border-t border-zinc-800/60">
+              <div className="pt-2 mt-2 border-t border-zinc-800/60 space-y-1">
                 <UserGuideModal />
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setShowFeedback(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-white transition text-left cursor-pointer"
+                >
+                  <span className="text-base">💬</span>
+                  <span>แจ้งปัญหา / ข้อเสนอแนะ</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    setShowCredits(true);
+                  }}
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-amber-400 hover:bg-zinc-900 hover:text-amber-300 transition text-left cursor-pointer"
+                >
+                  <span className="text-base">⭐</span>
+                  <span>ข้อมูลผู้พัฒนา (Credits)</span>
+                </button>
               </div>
             </nav>
 

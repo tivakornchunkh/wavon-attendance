@@ -122,6 +122,20 @@ export function createDbConnection(customPath?: string) {
           changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
           reason TEXT
         );
+        CREATE TABLE IF NOT EXISTS feedbacks (
+          id TEXT PRIMARY KEY,
+          user_id TEXT,
+          user_name TEXT,
+          user_contact TEXT,
+          category TEXT NOT NULL DEFAULT 'BUG',
+          title TEXT NOT NULL,
+          description TEXT NOT NULL,
+          device_info TEXT,
+          status TEXT NOT NULL DEFAULT 'PENDING',
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE INDEX IF NOT EXISTS idx_feedbacks_status ON feedbacks(status);
+        CREATE INDEX IF NOT EXISTS idx_feedbacks_created_at ON feedbacks(created_at);
       `)
       .catch((err) => {
         console.error('Remote DB table initialization check:', err);
@@ -156,6 +170,25 @@ export function createDbConnection(customPath?: string) {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
       );
       CREATE INDEX IF NOT EXISTS idx_recurring_team ON recurring_schedules(team_id);
+    `);
+  } catch {}
+
+  try {
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS feedbacks (
+        id TEXT PRIMARY KEY,
+        user_id TEXT,
+        user_name TEXT,
+        user_contact TEXT,
+        category TEXT NOT NULL DEFAULT 'BUG',
+        title TEXT NOT NULL,
+        description TEXT NOT NULL,
+        device_info TEXT,
+        status TEXT NOT NULL DEFAULT 'PENDING',
+        created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+      CREATE INDEX IF NOT EXISTS idx_feedbacks_status ON feedbacks(status);
+      CREATE INDEX IF NOT EXISTS idx_feedbacks_created_at ON feedbacks(created_at);
     `);
   } catch {}
 

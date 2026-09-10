@@ -3,14 +3,31 @@
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.3.0-emerald)
+![Version](https://img.shields.io/badge/version-2.3.1-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
 ![Tests](https://img.shields.io/badge/Vitest-50%20passed-brightgreen)
 
 ---
 
-## ⚡ อัปเดตใหญ่ประจำเวอร์ชัน 2.3.0 (What's New in v2.3.0)
+## 🌟 อัปเดตประจำเวอร์ชัน 2.3.1 (What's New in v2.3.1)
+
+### 1. 📨 ระบบแจ้งปัญหาและข้อเสนอแนะในแอป (In-App Database Feedback Engine)
+- ผู้ใช้งาน, โค้ช และนักกีฬาทุกคนสามารถส่งบัคหรือข้อเสนอแนะได้ทันทีใน 1 คลิก **โดยไม่จำเป็นต้องมีบัญชี GitHub**
+- ข้อมูลจะถูกบันทึกตรงเข้าสู่ฐานข้อมูลระบบ (ตาราง `feedbacks`) พร้อมข้อมูลอุปกรณ์และเวอร์ชันอัตโนมัติ
+- เพิ่มช่องระบุเบอร์โทรหรือ LINE ID (ไม่บังคับ) สำหรับให้ทีมงานติดต่อกลับ
+
+### 2. 👑 แผงควบคุมกล่องข้อความในระบบผู้ดูแล (Admin Feedback Console)
+- เพิ่มส่วนจัดการในหน้า `/admin` สำหรับให้ผู้ดูแลระบบเข้ามาอ่านรายละเอียดปัญหา ตรวจสอบข้อมูลอุปกรณ์ และอัปเดตสถานะการแก้ไข (รอดำเนินการ, กำลังแก้ไข, แก้ไขแล้ว) หรือลบรายการได้
+
+### 3. 📱 ปรับแต่งหน้าเครดิตแบบ Mobile Bottom Sheet & ปุ่มเข้าถึงด่วน
+- ปรับโครงสร้างหน้าต่างเครดิตบนมือถือเป็น **Modern Bottom Sheet** พร้อมแถบ Drag Handle ด้านบน เลื่อนดูรายละเอียดได้ลื่นไหล 100% ไม่มีปัญหาติดขัด
+- เพิ่มปุ่มไอคอน `⭐` บนแถบเมนูด้านบนของมือถือ และในแถบ Slide Drawer เพื่อให้กดเปิดดูเครดิตได้ทันที
+- ดีไซน์การ์ดโปรไฟล์ผู้พัฒนาพรีเมียม พร้อมช่องทางติดตาม: GitHub (`tivakornchunkh`), Facebook (`Arm x tivakorn`), และ Instagram (`@arm_x_tivakorn`)
+
+---
+
+## ⚡ ประวัติเวอร์ชัน 2.3.0 (What's New in v2.3.0)
 
 ### 1. 🚀 เพิ่มความเร็วระบบสถิติ 100 เท่า (Batch Aggregation Engine)
 - แก้ปัญหาเว็บโหลดช้าเวลาเปลี่ยนหน้าและสลับช่วงวันที่: ปรับระบบประมวลผลสถิติเป็น Single Batch Join & In-Memory Aggregation

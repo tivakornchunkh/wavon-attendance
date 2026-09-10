@@ -116,3 +116,24 @@ export const attendanceLogs = sqliteTable(
   ]
 );
 
+// 7. Feedbacks & Bug Reports
+export const feedbacks = sqliteTable(
+  'feedbacks',
+  {
+    id: text('id').primaryKey(),
+    userId: text('user_id'),
+    userName: text('user_name'),
+    userContact: text('user_contact'), // เบอร์โทร, LINE ID หรืออีเมลสำหรับติดต่อกลับ
+    category: text('category', { enum: ['BUG', 'FEATURE', 'PERFORMANCE', 'OTHER'] }).notNull().default('BUG'),
+    title: text('title').notNull(),
+    description: text('description').notNull(),
+    deviceInfo: text('device_info'), // version, browser, OS, URL
+    status: text('status', { enum: ['PENDING', 'IN_PROGRESS', 'RESOLVED'] }).notNull().default('PENDING'),
+    createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+  },
+  (table) => [
+    index('idx_feedbacks_status').on(table.status),
+    index('idx_feedbacks_created_at').on(table.createdAt),
+  ]
+);
+

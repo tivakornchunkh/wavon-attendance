@@ -5,6 +5,8 @@ import { eq, count } from 'drizzle-orm';
 import { getCurrentSession } from '../../src/server/helpers/auth';
 import { createClubAction, switchClubAction } from '../actions/auth.actions';
 import DeleteClubModal from './DeleteClubModal';
+import { FeedbackRepository } from '../../src/server/repositories/feedback.repo';
+import FeedbackManager from './FeedbackManager';
 
 export const dynamic = 'force-dynamic';
 
@@ -15,6 +17,8 @@ export default async function AdminPage() {
     redirect('/');
   }
 
+  const feedbackRepo = new FeedbackRepository(db);
+  const initialFeedbacks = await feedbackRepo.findAll().catch(() => []);
   const allTeams = await db.select().from(teams);
 
   const teamsData = await Promise.all(
@@ -232,6 +236,9 @@ export default async function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* In-App Feedback & Bug Reports Section */}
+      <FeedbackManager initialFeedbacks={initialFeedbacks} />
     </div>
   );
 }
