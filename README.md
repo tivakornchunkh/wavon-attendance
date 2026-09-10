@@ -1,16 +1,32 @@
-# ⚽ WAVON Athlete Attendance System (v2.6)
+# ⚽ WAVON Athlete Attendance System (v2.7)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.6.0-emerald)
+![Version](https://img.shields.io/badge/version-2.7.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
 ![Tests](https://img.shields.io/badge/Vitest-Passed-brightgreen)
 
 ---
 
-## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.6.0 (What's New in v2.6.0)
+## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.7.0 (What's New in v2.7.0)
+
+### 1. 👥 ระบบนำเข้ารายชื่อนักกีฬาทีละหลายคนเป็นชุด (Bulk / Batch Athlete Import)
+- **วางรายชื่อครั้งเดียวจบ:** โค้ชสามารถคัดลอกรายชื่อจาก LINE, WhatsApp หรือไฟล์ Excel นำมาวางในช่องเดียวได้ทันที รองรับ 10, 20 หรือ 50 คนในคลิกเดียว
+- **ระบบตัดคำอัจฉริยะ (Smart Roster Parser):**
+  - ตัดลำดับข้อ (`1. `, `2) `, `- `, `• `) อัตโนมัติ ไม่ต้องมานั่งลบทีละบรรทัด
+  - ดึงเบอร์เสื้อหรือรหัสนำหน้าอัตโนมัติ (เช่น `10, สมชาย` หรือ `#7 วรวุฒิ`)
+  - หากไม่มีการระบุรหัส ระบบจะรันรหัส `ATH-001`, `ATH-002`... ต่อเนื่องจากนักกีฬาที่มีอยู่เดิมให้อัตโนมัติ
+- **Live Preview Chips:** แสดงตัวนับรายชื่อแบบเรียลไทม์ `🟢 ตรวจพบ X รายชื่อพร้อมบันทึก` พร้อมชิปแสดงรายชื่อตัวอย่างก่อนกดยืนยัน
+
+### 2. 🔔 Pop-up แจ้งเตือนมุมขวาบน (Top-Right Toast Notification)
+- แสดงกล่องแจ้งเตือนสีมรกตสุดหรูที่มุมขวาบนเมื่อเพิ่มนักกีฬาสำเร็จ ทั้งแบบเดี่ยวและแบบชุด พร้อมแถบนับถอยหลัง 4.5 วินาที
+- รองรับการแสดงผลทั้งบนมือถือและคอมพิวเตอร์ 100% พร้อมเสียงและระบบสั่น (Tactile Haptic Feedback)
+
+---
+
+## 📱 ประวัติเวอร์ชัน 2.6.0 (What's New in v2.6.0)
 
 ### 1. 🖨️ สถาปัตยกรรม Permanent QR ศูนย์กลางสนาม (Permanent QR-Centric Architecture)
 - **พิมพ์ครั้งเดียว แปะติดสนาม ใช้งานได้ตลอดกาล:** ไม่ต้องสร้าง QR แยกแต่ละรอบซ้อมอีกต่อไป ทุกรอบซ้อมของสโมสรจะผูกกับ QR ถาวรเดียวกัน

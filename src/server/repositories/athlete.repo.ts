@@ -19,6 +19,26 @@ export class AthleteRepository {
     return created as Athlete;
   }
 
+  async createBatch(
+    items: Array<{
+      id: string;
+      teamId: string;
+      athleteCode: string;
+      name: string;
+      phone?: string | null;
+      startDate: string;
+      status: 'ACTIVE' | 'INACTIVE';
+    }>
+  ): Promise<Athlete[]> {
+    if (items.length === 0) return [];
+    const createdList: Athlete[] = [];
+    for (const item of items) {
+      const [created] = await this.db.insert(athletes).values(item).returning();
+      createdList.push(created as Athlete);
+    }
+    return createdList;
+  }
+
   async findById(id: string): Promise<Athlete | null> {
     const result = await this.db.select().from(athletes).where(eq(athletes.id, id)).limit(1);
     return (result[0] as Athlete) || null;

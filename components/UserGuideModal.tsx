@@ -35,10 +35,10 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
       color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
       actionSteps: [
         'กดเมนู "นักกีฬา" บนแถบเมนู',
-        'แตะปุ่ม "เพิ่มนักกีฬา" ใส่รหัสประจำตัว (เช่น A01, A02) และชื่อ-นามสกุล',
-        'รหัสนักกีฬาจะช่วยให้ค้นหาชื่อตนเองได้ใน 1 วินาทีตอนสแกนเช็คชื่อ',
+        'เลือก "ทีละคน" หรือแท็บ "นำเข้าเป็นชุด" แล้วคัดลอกรายชื่อจาก LINE/Excel มาวางเพิ่มได้ทันที',
+        'ระบบจะแยกแยะชื่อ เบอร์เสื้อ รหัสให้อัตโนมัติ พร้อม Pop-up ขวาบนแจ้งผลการบันทึก',
       ],
-      quickTip: '📌 เคล็ดลับ: สามารถกดดูประวัติการเข้าซ้อม สถิติการมา-ลา-ขาด แบบรายบุคคลได้ตลอดเวลา',
+      quickTip: '📌 สะดวก รวดเร็ว: วางรายชื่อ 20-30 คนในช่องเดียว ระบบตรวจนับและเพิ่มเข้าสโมสรใน 1 คลิก!',
       renderIllustration: () => (
         <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2 text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-zinc-200">

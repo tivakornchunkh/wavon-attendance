@@ -1,5 +1,5 @@
 import { AthleteRepository } from '../../server/repositories/athlete.repo';
-import { CreateAthleteInput, UpdateAthleteInput } from '../validators/athlete.validator';
+import { CreateAthleteInput, CreateBatchAthletesInput, UpdateAthleteInput } from '../validators/athlete.validator';
 import { Athlete } from '../domain/athlete';
 import crypto from 'crypto';
 
@@ -40,6 +40,69 @@ export class AthleteService {
       startDate: input.startDate,
       status: input.status || 'ACTIVE',
     });
+  }
+
+  /**
+   * สร้างนักกีฬาทีละหลายคนเป็นชุด (Bulk Athlete Import)
+   */
+  async createBatchAthletes(input: CreateBatchAthletesInput): Promise<Athlete[]> {
+    if (!input.athletes || input.athletes.length === 0) {
+      return [];
+    }
+
+    const currentCount = await this.athleteRepo.countByTeam(input.teamId);
+    let autoCounter = currentCount + 1;
+    const usedCodesInBatch = new Set<string>();
+
+    const itemsToInsert: Array<{
+      id: string;
+      teamId: string;
+      athleteCode: string;
+      name: string;
+      phone?: string | null;
+      startDate: string;
+      status: 'ACTIVE';
+    }> = [];
+
+    for (const item of input.athletes) {
+      let code = item.athleteCode?.trim();
+
+      if (code) {
+        if (usedCodesInBatch.has(code)) {
+          throw new Error(`รหัสนักกีฬา '${code}' ซ้ำกันภายในชุดข้อมูลที่นำเข้า`);
+        }
+        const existing = await this.athleteRepo.findByCode(input.teamId, code);
+        if (existing) {
+          throw new Error(`รหัสนักกีฬา '${code}' มีอยู่ในระบบแล้ว`);
+        }
+        usedCodesInBatch.add(code);
+      } else {
+        // Auto-generate code
+        let generatedCode = `ATH-${String(autoCounter).padStart(3, '0')}`;
+        while (
+          usedCodesInBatch.has(generatedCode) ||
+          (await this.athleteRepo.findByCode(input.teamId, generatedCode))
+        ) {
+          autoCounter++;
+          generatedCode = `ATH-${String(autoCounter).padStart(3, '0')}`;
+        }
+        code = generatedCode;
+        usedCodesInBatch.add(code);
+        autoCounter++;
+      }
+
+      itemsToInsert.push({
+        id: crypto.randomUUID(),
+        teamId: input.teamId,
+        athleteCode: code,
+        name: item.name.trim(),
+        phone: item.phone || null,
+        startDate: input.startDate,
+        status: 'ACTIVE',
+      });
+    }
+
+    return await this.athleteRepo.createBatch(itemsToInsert);
   }
 
   async updateAthlete(id: string, input: UpdateAthleteInput, teamId?: string): Promise<Athlete> {
