@@ -425,7 +425,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
           <div className="flex items-center gap-2">
             <span className="font-semibold text-zinc-600 tracking-wider">Built by WAVON</span>
             <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-bold">
-              v2.0
+              {APP_VERSION}
             </span>
           </div>
           <span className="hidden sm:inline text-zinc-300">•</span>

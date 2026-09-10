@@ -84,5 +84,13 @@ export class AthleteService {
   async getAthleteById(id: string): Promise<Athlete | null> {
     return await this.athleteRepo.findById(id);
   }
+
+  async deleteAthlete(id: string): Promise<boolean> {
+    const existing = await this.athleteRepo.findById(id);
+    if (!existing) {
+      throw new Error(`Athlete with ID ${id} not found.`);
+    }
+    return await this.athleteRepo.delete(id);
+  }
 }
 

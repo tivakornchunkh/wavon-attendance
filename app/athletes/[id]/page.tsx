@@ -6,6 +6,7 @@ import { AttendanceRepository } from '../../../src/server/repositories/attendanc
 import { getCurrentSession } from '../../../src/server/helpers/auth';
 import { teams } from '../../../src/server/db/schema';
 import { eq } from 'drizzle-orm';
+import DeleteAthleteButton from './DeleteAthleteButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -93,16 +94,21 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
             </div>
           </div>
 
-          <div className="self-stretch sm:self-auto">
+          <div className="self-stretch sm:self-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
             <Link
               href={`/api/export/attendance?athleteId=${athlete.id}`}
               download
-              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-xs transition w-full sm:w-auto min-h-[44px]"
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-xs transition min-h-[42px]"
               title="ดาวน์โหลดใบบันทึกสถิติรายบุคคล (Excel/CSV)"
             >
               <span>📥</span>
               <span>ส่งออกใบบันทึกสถิตินี้ (Excel)</span>
             </Link>
+            <DeleteAthleteButton
+              athleteId={athlete.id}
+              athleteName={athlete.name}
+              athleteCode={athlete.athleteCode}
+            />
           </div>
         </div>
       </div>

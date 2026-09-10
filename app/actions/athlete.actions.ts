@@ -42,3 +42,19 @@ export async function toggleAthleteStatusAction(
   revalidatePath('/athletes');
 }
 
+export async function deleteAthleteAction(athleteId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await athleteService.deleteAthlete(athleteId);
+    revalidatePath('/athletes');
+    revalidatePath('/');
+    revalidatePath('/sessions');
+    return { success: true };
+  } catch (err: unknown) {
+    console.error('Delete athlete error:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการลบนักกีฬา',
+    };
+  }
+}
+

@@ -1,8 +1,10 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
 import { selfCheckInAction } from '../../actions/session.actions';
 import { formatUserFriendlyError } from '../../../src/lib/error-formatter';
+import { playTactileFeedback } from '../../../components/feedback';
 
 interface Athlete {
   id: string;
@@ -72,6 +74,50 @@ export default function AthleteCheckInView({
     rank: number;
     time: string;
   } | null>(null);
+
+  const [leaveReceiptData, setLeaveReceiptData] = useState<{
+    athleteName: string;
+    athleteCode: string;
+    reason: string;
+    time: string;
+  } | null>(null);
+
+  const router = useRouter();
+
+  // Smart Mobile Auto-Refresh (Visibility change, Focus, and 10s interval)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        router.refresh();
+      }
+    };
+    const handleFocus = () => {
+      router.refresh();
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        router.refresh();
+      }
+    }, 10000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(timer);
+    };
+  }, [router]);
+
+  // Synchronize attendances when revalidated from server
+  useEffect(() => {
+    const map: Record<string, { status: string; notes?: string | null }> = {};
+    for (const att of initialAttendances) {
+      map[att.athleteId] = { status: att.status, notes: att.notes };
+    }
+    setAttendances(map);
+  }, [initialAttendances]);
 
   useEffect(() => {
     try {
@@ -203,7 +249,7 @@ export default function AthleteCheckInView({
         } catch {}
 
         if (activeTab === 'PRESENT') {
-          // 8A & 7B: Show Digital Match Pass & Confetti
+          playTactileFeedback('PRESENT');
           setDigitalPassData({
             athleteName: athleteToSubmit.name,
             athleteCode: athleteToSubmit.athleteCode,
@@ -211,7 +257,13 @@ export default function AthleteCheckInView({
             time: `${nowTime} น.`,
           });
         } else {
-          showToast(`บันทึกการแจ้งลาซ้อมเรียบร้อย: ${athleteToSubmit.name} (${finalReason})`, 'success');
+          playTactileFeedback('LEAVE');
+          setLeaveReceiptData({
+            athleteName: athleteToSubmit.name,
+            athleteCode: athleteToSubmit.athleteCode,
+            reason: finalReason || 'แจ้งลาซ้อม',
+            time: `${nowTime} น.`,
+          });
         }
 
         setSelectedAthlete(null);
@@ -280,61 +332,130 @@ export default function AthleteCheckInView({
         </div>
       )}
 
-      {/* 8A: Digital Match Pass Celebration Modal */}
+      {/* 8A: Universal Athlete Training Pass Celebration Modal */}
       {digitalPassData && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-          <div className="bg-[#0F1115] text-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-emerald-500/40 text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
-            {/* Confetti Particle simulation */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
-              <span className="text-5xl animate-bounce">🎉</span>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-linear-to-b from-zinc-900 via-[#0B0F19] to-zinc-950 text-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-emerald-500/40 text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Holographic Glowing Orbs */}
+            <div className="absolute -top-16 -right-16 w-36 h-36 bg-emerald-500/20 rounded-full blur-3xl pointer-events-none" />
+            <div className="absolute -bottom-16 -left-16 w-36 h-36 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
 
             {/* Pass Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
-              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
-                PITCH CHECK-IN PASS
-              </span>
-              <span className="text-[10px] text-zinc-400 font-mono">
+            <div className="flex items-center justify-between pb-3.5 border-b border-zinc-800/80 relative z-10">
+              <div className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                  TRAINING PASS
+                </span>
+              </div>
+              <span className="text-[11px] text-zinc-400 font-mono font-bold">
                 {digitalPassData.time}
               </span>
             </div>
 
             {/* Pass Body */}
-            <div className="py-6 space-y-3 relative z-10">
-              <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mx-auto text-3xl shadow-lg shadow-emerald-500/20">
-                ⚽
+            <div className="py-5 space-y-3.5 relative z-10">
+              {/* Universal Sport Crest (Badminton & Court / Academy ready) */}
+              <div className="relative mx-auto w-20 h-20 flex items-center justify-center">
+                <div className="absolute inset-0 rounded-3xl bg-linear-to-tr from-emerald-500 via-teal-400 to-amber-300 opacity-40 blur-md animate-pulse" />
+                <div className="relative w-20 h-20 rounded-3xl bg-linear-to-b from-zinc-800 to-zinc-950 border-2 border-emerald-400/80 flex flex-col items-center justify-center shadow-xl shadow-emerald-500/25">
+                  <span className="text-3xl filter drop-shadow-sm">🏸</span>
+                  <span className="text-[8px] font-black uppercase tracking-tighter text-emerald-300 mt-0.5">READY</span>
+                </div>
               </div>
 
-              {/* Early Bird Rank Badge */}
-              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-black">
+              {/* Early Bird Arrival Rank Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full bg-amber-500/15 border border-amber-400/30 text-amber-300 text-xs font-black shadow-xs">
                 <span>⚡</span>
-                <span>มาถึงสนามเป็นคนที่ #{digitalPassData.rank}</span>
+                <span>มาถึงสนาม/คอร์ทเป็นคนที่ #{digitalPassData.rank}</span>
               </div>
 
-              <h2 className="text-2xl font-black tracking-tight text-white mt-1">
-                {digitalPassData.athleteName}
-              </h2>
-              <p className="text-xs font-mono text-zinc-400">
-                รหัสประจำตัว: <strong className="text-emerald-400">{digitalPassData.athleteCode}</strong>
-              </p>
-              <p className="text-[11px] text-zinc-500">
-                สโมสร {team.name} • {session.title}
-              </p>
+              <div>
+                <h2 className="text-2xl font-black tracking-tight text-white mt-1">
+                  {digitalPassData.athleteName}
+                </h2>
+                <div className="mt-1 inline-flex items-center gap-1 px-2.5 py-0.5 rounded-md bg-zinc-800/80 border border-zinc-700 font-mono text-xs text-zinc-300">
+                  <span>รหัส:</span>
+                  <strong className="text-emerald-400 font-bold">{digitalPassData.athleteCode}</strong>
+                </div>
+              </div>
+
+              <div className="pt-1 text-[11px] text-zinc-400">
+                <p className="font-semibold text-zinc-300">{team.name}</p>
+                <p className="text-zinc-500">{session.title} • {session.date}</p>
+              </div>
             </div>
 
-            {/* Stamp */}
-            <div className="mt-2 inline-block px-4 py-1.5 rounded-full border-2 border-emerald-400 text-emerald-400 text-xs font-black tracking-widest uppercase rotate-[-3deg] shadow-lg shadow-emerald-500/20">
-              ✓ VERIFIED PRESENT
+            {/* Official Digital Stamp */}
+            <div className="mt-1 inline-flex items-center gap-1 px-4 py-1.5 rounded-full border border-emerald-400/60 bg-emerald-500/10 text-emerald-300 text-xs font-black tracking-wider uppercase rotate-[-2deg] shadow-lg shadow-emerald-500/15">
+              <span>✓</span>
+              <span>VERIFIED ON COURT • บันทึกแล้ว</span>
             </div>
 
-            {/* Close Button */}
-            <div className="mt-6">
+            {/* Close / Done Button */}
+            <div className="mt-6 relative z-10">
               <button
                 type="button"
                 onClick={() => setDigitalPassData(null)}
-                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md active:scale-95"
+                className="w-full py-3.5 rounded-2xl bg-linear-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 active:scale-[0.98] text-zinc-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-1.5"
               >
-                เสร็จสิ้น / ปิดหน้าต่าง
+                <span>ยอดเยี่ยมมาก / ปิดหน้าต่าง</span>
+                <span>&rarr;</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Official Leave Notice Receipt Modal */}
+      {leaveReceiptData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-linear-to-b from-zinc-900 via-[#18130B] to-zinc-950 text-white rounded-3xl max-w-sm w-full p-6 sm:p-7 shadow-2xl border border-amber-500/40 text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Header */}
+            <div className="flex items-center justify-between pb-3.5 border-b border-zinc-800 relative z-10">
+              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400">
+                LEAVE NOTICE CONFIRMED
+              </span>
+              <span className="text-[11px] text-zinc-400 font-mono font-bold">
+                {leaveReceiptData.time}
+              </span>
+            </div>
+
+            {/* Body */}
+            <div className="py-5 space-y-3.5 relative z-10">
+              <div className="w-16 h-16 rounded-3xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center mx-auto text-3xl shadow-lg shadow-amber-500/15">
+                📝
+              </div>
+
+              <div>
+                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                  แจ้งลาซ้อมสำเร็จ
+                </span>
+                <h2 className="text-xl sm:text-2xl font-black tracking-tight text-white mt-2">
+                  {leaveReceiptData.athleteName}
+                </h2>
+                <p className="text-xs font-mono text-zinc-400 mt-0.5">
+                  รหัสนักกีฬา: <strong className="text-amber-300">{leaveReceiptData.athleteCode}</strong>
+                </p>
+              </div>
+
+              <div className="p-3.5 bg-zinc-900/90 border border-zinc-800 rounded-2xl text-left space-y-1">
+                <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider block">เหตุผลการลา:</span>
+                <p className="text-xs text-amber-200 font-semibold">{leaveReceiptData.reason}</p>
+                <p className="text-[10px] text-zinc-400 pt-1 border-t border-zinc-800/80">
+                  ระบบส่งข้อมูลให้โค้ชประจำรอบ {session.title} เรียบร้อยแล้ว
+                </p>
+              </div>
+            </div>
+
+            {/* Button */}
+            <div className="mt-4 relative z-10">
+              <button
+                type="button"
+                onClick={() => setLeaveReceiptData(null)}
+                className="w-full py-3.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 active:bg-zinc-600 text-white font-black text-xs sm:text-sm transition cursor-pointer"
+              >
+                เรียบร้อย / ปิดหน้าต่าง
               </button>
             </div>
           </div>
@@ -451,7 +572,7 @@ export default function AthleteCheckInView({
                 className="flex-1 py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
               >
                 <span>🎫</span>
-                <span>ดูบัตร Digital Match Pass ของคุณ</span>
+                <span>ดูบัตร Digital Training Pass ของคุณ</span>
               </button>
             ) : (
               <button

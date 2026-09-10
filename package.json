@@ -1,6 +1,6 @@
 {
   "name": "my-app",
-  "version": "2.1.4",
+  "version": "2.2.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -36,5 +36,8 @@
     "typescript": "^5",
     "vite": "^8.2.2",
     "vitest": "^5.0.0"
+  },
+  "optionalDependencies": {
+    "@libsql/linux-x64-gnu": "^0.5.29"
   }
 }

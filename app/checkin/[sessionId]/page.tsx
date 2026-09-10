@@ -62,7 +62,7 @@ export default async function CheckInPage({ params, searchParams }: PageProps) {
   }
 
   const [team] = await db.select().from(teams).where(eq(teams.id, session.teamId)).limit(1);
-  const teamAthletes = await athleteRepo.findByTeam(session.teamId);
+  const teamAthletes = await athleteRepo.findByTeam(session.teamId, { status: 'ACTIVE' });
   const sessionAttendances = await attendanceRepo.findBySessionId(sessionId);
 
   return (

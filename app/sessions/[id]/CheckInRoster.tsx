@@ -1,6 +1,7 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   submitSessionAttendanceAction,
   closeSessionAndMarkAbsentAction,
@@ -63,6 +64,56 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [isClosingPending, setIsClosingPending] = useState(false);
   const [closedToastMsg, setClosedToastMsg] = useState<string | null>(null);
+  const router = useRouter();
+
+  // Smart Mobile/Pitch Stand Auto-Refresh (Visibility, Focus, and 8s Polling)
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !isSubmitting) {
+        router.refresh();
+      }
+    };
+    const handleFocus = () => {
+      if (!isSubmitting) router.refresh();
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    window.addEventListener('focus', handleFocus);
+
+    const timer = setInterval(() => {
+      if (document.visibilityState === 'visible' && !isSubmitting) {
+        router.refresh();
+      }
+    }, 8000);
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(timer);
+    };
+  }, [router, isSubmitting]);
+
+  // Synchronize statuses and notes when initialRoster updates via auto-refresh
+  useEffect(() => {
+    setStatuses((prev) => {
+      const nextMap = { ...prev };
+      for (const item of initialRoster) {
+        if (item.status && (!nextMap[item.athlete.id] || nextMap[item.athlete.id] !== item.status)) {
+          nextMap[item.athlete.id] = item.status;
+        }
+      }
+      return nextMap;
+    });
+    setNotes((prev) => {
+      const nextNotes = { ...prev };
+      for (const item of initialRoster) {
+        if (item.notes && !nextNotes[item.athlete.id]) {
+          nextNotes[item.athlete.id] = item.notes;
+        }
+      }
+      return nextNotes;
+    });
+  }, [initialRoster]);
 
   const handleConfirmCloseSession = async () => {
     setIsClosingPending(true);

@@ -3,7 +3,7 @@
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.1.4-emerald)
+![Version](https://img.shields.io/badge/version-2.2.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
 ![Tests](https://img.shields.io/badge/Vitest-36%20passed-brightgreen)

@@ -1,6 +1,6 @@
 import { eq, and, like, lte, or, desc } from 'drizzle-orm';
 import { DatabaseInstance } from '../db/client';
-import { athletes } from '../db/schema';
+import { athletes, attendances, attendanceLogs } from '../db/schema';
 import { Athlete } from '../../core/domain/athlete';
 
 export class AthleteRepository {
@@ -100,6 +100,15 @@ export class AthleteRepository {
   async countByTeam(teamId: string): Promise<number> {
     const list = await this.db.select().from(athletes).where(eq(athletes.teamId, teamId));
     return list.length;
+  }
+
+  async delete(id: string): Promise<boolean> {
+    try {
+      await this.db.delete(attendanceLogs).where(eq(attendanceLogs.athleteId, id));
+      await this.db.delete(attendances).where(eq(attendances.athleteId, id));
+    } catch {}
+    await this.db.delete(athletes).where(eq(athletes.id, id));
+    return true;
   }
 }
 

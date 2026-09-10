@@ -3,7 +3,7 @@
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { Athlete } from '../../src/core/domain/athlete';
-import { toggleAthleteStatusAction } from '../actions/athlete.actions';
+import { toggleAthleteStatusAction, deleteAthleteAction } from '../actions/athlete.actions';
 
 interface AthletesListProps {
   initialAthletes: Athlete[];
@@ -17,6 +17,8 @@ export default function AthletesList({ initialAthletes }: AthletesListProps) {
   const [statusFilter, setStatusFilter] = useState<'ALL' | 'ACTIVE' | 'INACTIVE'>('ALL');
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
+  const [athleteToDelete, setAthleteToDelete] = useState<Athlete | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -204,27 +206,89 @@ export default function AthletesList({ initialAthletes }: AthletesListProps) {
                     )}
                   </td>
                   <td className="px-5 sm:px-6 py-4 text-right">
-                    <form
-                      action={async () => {
-                        await toggleAthleteStatusAction(athlete.id, athlete.status);
-                      }}
-                    >
-                      <button
-                        type="submit"
-                        className={`text-xs px-3 py-1.5 rounded-xl border font-bold transition cursor-pointer min-h-[36px] ${
-                          athlete.status === 'ACTIVE'
-                            ? 'border-zinc-300 text-zinc-600 hover:bg-zinc-100 active:bg-zinc-200'
-                            : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 active:bg-emerald-100'
-                        }`}
+                    <div className="flex items-center justify-end gap-1.5">
+                      <form
+                        action={async () => {
+                          await toggleAthleteStatusAction(athlete.id, athlete.status);
+                        }}
                       >
-                        {athlete.status === 'ACTIVE' ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
+                        <button
+                          type="submit"
+                          className={`text-xs px-2.5 py-1.5 rounded-xl border font-bold transition cursor-pointer min-h-[36px] ${
+                            athlete.status === 'ACTIVE'
+                              ? 'border-zinc-300 text-zinc-600 hover:bg-zinc-100 active:bg-zinc-200'
+                              : 'border-emerald-300 text-emerald-700 hover:bg-emerald-50 active:bg-emerald-100'
+                          }`}
+                        >
+                          {athlete.status === 'ACTIVE' ? 'ปิดใช้งาน' : 'เปิดใช้งาน'}
+                        </button>
+                      </form>
+
+                      <button
+                        type="button"
+                        onClick={() => setAthleteToDelete(athlete)}
+                        className="text-xs px-2.5 py-1.5 rounded-xl border border-rose-200 bg-rose-50 text-rose-700 hover:bg-rose-100 active:bg-rose-200 font-bold transition cursor-pointer min-h-[36px]"
+                        title="ลบนักกีฬา"
+                      >
+                        🗑️ ลบ
                       </button>
-                    </form>
+                    </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {athleteToDelete && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-zinc-200 animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3">
+              ⚠️
+            </div>
+
+            <h3 className="text-base sm:text-lg font-black text-zinc-900 text-center">
+              ยืนยันการลบนักกีฬา?
+            </h3>
+
+            <p className="text-xs text-zinc-500 text-center mt-2 leading-relaxed">
+              คุณกำลังจะลบ <strong>&ldquo;{athleteToDelete.name}&rdquo;</strong> (รหัส {athleteToDelete.athleteCode}) ออกจากระบบอย่างถาวร
+              ข้อมูลสถิติและประวัติการเช็คชื่อทั้งหมดจะถูกลบไปด้วย
+            </p>
+
+            <div className="mt-5 flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => setAthleteToDelete(null)}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-bold hover:bg-zinc-50 transition cursor-pointer min-h-[42px]"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsDeleting(true);
+                  await deleteAthleteAction(athleteToDelete.id);
+                  setIsDeleting(false);
+                  setAthleteToDelete(null);
+                }}
+                disabled={isDeleting}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] disabled:opacity-50"
+              >
+                {isDeleting ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>กำลังลบ...</span>
+                  </>
+                ) : (
+                  <span>ยืนยันลบข้อมูล</span>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
