@@ -1,16 +1,36 @@
-# ⚽ WAVON Athlete Attendance System (v2.7)
+# ⚽ WAVON Athlete Attendance System (v2.8)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.7.0-emerald)
+![Version](https://img.shields.io/badge/version-2.8.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
 ![Tests](https://img.shields.io/badge/Vitest-Passed-brightgreen)
 
 ---
 
-## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.7.0 (What's New in v2.7.0)
+## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.8.0 (What's New in v2.8.0)
+
+### 1. 🌟 ปรับโฉมหน้าเข้าสู่ระบบสไตล์ Minimalist Clean Light (Apple & Linear Inspired)
+- **ดีไซน์ขาวคลีน พรีเมียม สบายตา:** พื้นหลังโทนสว่างผสมแสงสะท้อนนีออนมรกต (Ambient Glow) พร้อมการ์ดกระจกแก้วขอบมน `rounded-3xl`
+- **1-Click Fast Login Demo Pills:** ชิปลัดเข้าสู่ระบบด่วน แตะ 1 ครั้งกรอกข้อมูลอัตโนมัติทันที:
+  - ⚡ **โค้ชอาร์ม (Arm):** ผู้ดูแลระบบ WAVON FC (`arm` / `123456`)
+  - ⚽ **คนเช็คชื่อ WAVON:** โค้ชสนาม WAVON FC (`coach_wavon` / `pass1234`)
+  - 🏃 **คนเช็คชื่อ THUNDER:** โค้ช THUNDER CLUB (`coach_thunder` / `pass1234`)
+  - 👑 **ผู้ดูแลระบบกลาง (Admin):** Super Admin (`admin` / `admin1234`)
+- **Show/Hide Password Toggle:** ปุ่มเปิด/ปิดดูรหัสผ่านพร้อมไอคอนมาตรฐาน Modern Web Accessibility
+- **Large Accessible Tap Targets:** รองรับการแตะสัมผัสบนมือถืออย่างแม่นยำ (ความสูงขั้นต่ำ 48px)
+- **Clean Frost Loading Overlay:** แอนิเมชันตอนเข้าสู่ระบบที่นุ่มนวล เรียบหรู ไม่แสบตา
+
+### 2. 💎 ยกระดับ UI หน้าภายในระบบทั้งหมด (Complete Internal UI Elevation)
+- **แผงเมนูนำทาง (AppShell):** แถบ Sidebar เพิ่มเส้น Active Indicator สีมรกต และแถบเมนูด้านล่างบนมือถือ (Bottom Navigation) ปรับเป็นกล่องแก้วเบลอพร้อมจุดไฟสถานะที่คมชัด
+- **หน้าเปิดสโมสรใหม่ (Register):** ปรับเข้าธีม Minimalist Clean Light พร้อมปุ่มเปิดดูรหัสผ่านและการ์ด `rounded-3xl`
+- **หน้าแดชบอร์ดและหน้ารายชื่อนักกีฬา:** ปรับความคมชัดและโทนสีให้กลมกลืน ดูเป็นมืออาชีพ
+
+---
+
+## 👥 ประวัติเวอร์ชัน 2.7.0 (What's New in v2.7.0)
 
 ### 1. 👥 ระบบนำเข้ารายชื่อนักกีฬาทีละหลายคนเป็นชุด (Bulk / Batch Athlete Import)
 - **วางรายชื่อครั้งเดียวจบ:** โค้ชสามารถคัดลอกรายชื่อจาก LINE, WhatsApp หรือไฟล์ Excel นำมาวางในช่องเดียวได้ทันที รองรับ 10, 20 หรือ 50 คนในคลิกเดียว

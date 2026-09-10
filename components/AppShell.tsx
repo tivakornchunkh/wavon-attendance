@@ -157,13 +157,16 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-medium transition group ${
+              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-medium transition-all group relative ${
                 item.active
-                  ? 'bg-white text-zinc-950 font-bold shadow-sm'
+                  ? 'bg-white text-zinc-950 font-bold shadow-sm ring-1 ring-emerald-500/20'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80'
               }`}
             >
-              <span className={`${item.active ? 'text-zinc-950' : 'text-zinc-400 group-hover:text-white'}`}>
+              {item.active && (
+                <span className="absolute left-1 top-1/2 -translate-y-1/2 w-1 h-5 bg-emerald-500 rounded-full" />
+              )}
+              <span className={`pl-1 ${item.active ? 'text-zinc-950' : 'text-zinc-400 group-hover:text-white'}`}>
                 {item.icon}
               </span>
               <div>
@@ -551,43 +554,63 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
       {/* ========================================================= */}
       {/* 5. TABLET / MOBILE BOTTOM NAVIGATION BAR (< lg screens) */}
       {/* ========================================================= */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-md border-t border-zinc-200 px-2 py-1 flex items-center justify-around shadow-lg">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-xl border-t border-zinc-200/80 px-3 py-1.5 flex items-center justify-around shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.05)]">
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-lg text-[10px] font-medium min-w-[60px] min-h-[48px] ${
-            pathname === '/' ? 'text-zinc-950 font-bold' : 'text-zinc-500 hover:text-zinc-800'
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+            pathname === '/'
+              ? 'text-zinc-950 font-black bg-zinc-100/90 shadow-2xs'
+              : 'text-zinc-500 hover:text-zinc-800'
           }`}
         >
-          <span className="text-lg">📊</span>
-          <span>แดชบอร์ด</span>
+          <span className="text-lg leading-none">📊</span>
+          <span className="mt-0.5">แดชบอร์ด</span>
+          {pathname === '/' && (
+            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-1" />
+          )}
         </Link>
         <Link
           href="/athletes"
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-lg text-[10px] font-medium min-w-[60px] min-h-[48px] ${
-            pathname.startsWith('/athletes') ? 'text-zinc-950 font-bold' : 'text-zinc-500 hover:text-zinc-800'
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+            pathname.startsWith('/athletes')
+              ? 'text-zinc-950 font-black bg-zinc-100/90 shadow-2xs'
+              : 'text-zinc-500 hover:text-zinc-800'
           }`}
         >
-          <span className="text-lg">🏃</span>
-          <span>นักกีฬา</span>
+          <span className="text-lg leading-none">🏃</span>
+          <span className="mt-0.5">นักกีฬา</span>
+          {pathname.startsWith('/athletes') && (
+            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-1" />
+          )}
         </Link>
         <Link
           href="/sessions"
-          className={`flex flex-col items-center justify-center py-1 px-3 rounded-lg text-[10px] font-medium min-w-[60px] min-h-[48px] ${
-            pathname.startsWith('/sessions') ? 'text-zinc-950 font-bold' : 'text-zinc-500 hover:text-zinc-800'
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+            pathname.startsWith('/sessions')
+              ? 'text-zinc-950 font-black bg-zinc-100/90 shadow-2xs'
+              : 'text-zinc-500 hover:text-zinc-800'
           }`}
         >
-          <span className="text-lg">⏱️</span>
-          <span>รอบซ้อม</span>
+          <span className="text-lg leading-none">⏱️</span>
+          <span className="mt-0.5">รอบซ้อม</span>
+          {pathname.startsWith('/sessions') && (
+            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-1" />
+          )}
         </Link>
         {session.isAdmin && (
           <Link
             href="/admin"
-            className={`flex flex-col items-center justify-center py-1 px-3 rounded-lg text-[10px] font-medium min-w-[60px] min-h-[48px] ${
-              pathname.startsWith('/admin') ? 'text-amber-700 font-bold' : 'text-zinc-500 hover:text-zinc-800'
+            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+              pathname.startsWith('/admin')
+                ? 'text-amber-900 font-black bg-amber-50 shadow-2xs border border-amber-200/60'
+                : 'text-zinc-500 hover:text-zinc-800'
             }`}
           >
-            <span className="text-lg">👑</span>
-            <span>ผู้ดูแล</span>
+            <span className="text-lg leading-none">👑</span>
+            <span className="mt-0.5">ผู้ดูแล</span>
+            {pathname.startsWith('/admin') && (
+              <span className="w-1 h-1 rounded-full bg-amber-500 absolute bottom-1" />
+            )}
           </Link>
         )}
       </nav>

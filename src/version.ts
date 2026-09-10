@@ -4,7 +4,7 @@
  * - Minor update (x.y.0): New major features (e.g. anti-cheat, recurring schedule, auto-absent)
  * - Patch update (x.y.z): Bug fixes, UI polishes, and hotfixes
  */
-export const APP_VERSION = 'v2.7.0';
-export const APP_VERSION_RAW = '2.7.0';
-export const APP_RELEASE_NAME = 'Bulk Athlete Import, Smart Roster Parser & Roster Expansion';
+export const APP_VERSION = 'v2.8.0';
+export const APP_VERSION_RAW = '2.8.0';
+export const APP_RELEASE_NAME = 'Minimalist Clean Light UI, Fast Demo Login & Full Internal UI Elevation';
 
