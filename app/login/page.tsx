@@ -1,7 +1,6 @@
 import Link from 'next/link';
 import { loginAction } from '../actions/auth.actions';
 import WavonLogo from '../../components/WavonLogo';
-import WavonHeroEmblem from '../../components/WavonHeroEmblem';
 import { LoginForm } from './LoginForm';
 import { APP_VERSION } from '../../src/version';
 
@@ -9,65 +8,80 @@ export const dynamic = 'force-dynamic';
 
 export default function LoginPage() {
   return (
-    <div className="min-h-screen bg-[#F1F5F9] relative overflow-hidden py-6 sm:py-12 px-3 sm:px-4 flex flex-col justify-center items-center">
-      {/* Ambient Lighting Orbs */}
-      <div className="absolute -top-32 -left-32 w-96 h-96 bg-emerald-100/60 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute top-1/2 -right-32 w-96 h-96 bg-teal-100/50 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute -bottom-32 left-1/3 w-96 h-96 bg-slate-200/60 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen bg-[#F8FAFC] py-10 sm:py-16 px-4 flex flex-col justify-center items-center">
+      <div className="w-full max-w-md space-y-6">
+        {/* Clean Brand Header */}
+        <div className="text-center flex flex-col items-center">
+          <Link href="/" className="inline-block transition-opacity hover:opacity-85">
+            <WavonLogo theme="light" size="lg" className="justify-center" />
+          </Link>
 
-      {/* App-Card Container (Matching Reference Mockup) */}
-      <div className="w-full max-w-[430px] relative z-10 bg-white rounded-[32px] sm:rounded-[36px] shadow-[0_25px_70px_-15px_rgba(0,0,0,0.08)] border border-zinc-200/90 overflow-hidden">
-        {/* Card Top: Brand Header & Cool 3D WAVON Emblem */}
-        <div className="relative bg-gradient-to-b from-[#EEF7F2] via-[#F4FAF6] to-white pt-6 px-6 pb-2 overflow-hidden">
-          {/* Top Brand Bar */}
-          <div className="flex items-center justify-between relative z-10 mb-3">
-            <Link href="/" className="transition hover:opacity-90">
-              <WavonLogo theme="light" size="sm" />
-            </Link>
-            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-white/90 text-emerald-800 border border-emerald-200/80 shadow-2xs backdrop-blur-xs">
-              {APP_VERSION}
-            </span>
+          <div className="mt-3.5 inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white text-zinc-600 border border-zinc-200/80 shadow-2xs">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span>ระบบเช็คชื่อนักกีฬา</span>
+            <span className="text-zinc-300">•</span>
+            <span className="font-mono text-zinc-500">{APP_VERSION}</span>
           </div>
 
-          {/* Cool 3D Cyber Emblem Centerpiece */}
-          <div className="py-2 flex justify-center">
-            <WavonHeroEmblem size="md" />
-          </div>
-
-          {/* Title & Subtitle */}
-          <div className="text-center pt-3 pb-1">
-            <h1 className="text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">
-              Login
-            </h1>
-            <p className="text-xs text-zinc-500 mt-1 font-medium">
-              เข้าสู่ระบบติดตามสถิติและการเช็คชื่อนักกีฬา
-            </p>
-          </div>
+          <h1 className="mt-4 text-2xl sm:text-3xl font-black text-zinc-900 tracking-tight">
+            เข้าสู่ระบบสโมสร
+          </h1>
+          <p className="mt-1 text-xs sm:text-sm text-zinc-500 max-w-xs leading-relaxed">
+            ระบบติดตามสถิติและการเช็คชื่อเข้าฝึกซ้อมรายสโมสร
+          </p>
         </div>
 
-        {/* Card Body: Form Fields & Actions */}
-        <div className="px-6 sm:px-8 pb-7 pt-3 space-y-5 bg-white">
+        {/* Clean Main Card */}
+        <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
           <LoginForm loginAction={loginAction} />
 
-          {/* Multi-Club Isolation Badge */}
-          <div className="pt-3 border-t border-zinc-100 flex items-center justify-center gap-2 text-[11px] text-zinc-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-            <span>ระบบแยกข้อมูลเฉพาะสโมสร (Multi-Club Isolation)</span>
+          {/* New Club Self-Registration CTA */}
+          <div className="pt-5 border-t border-zinc-100 text-center">
+            <p className="text-xs text-zinc-500 mb-2.5">
+              ยังไม่มีสโมสรในระบบ?
+            </p>
+            <Link
+              href="/register"
+              className="w-full py-3 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-100/90 active:bg-zinc-200/70 border border-zinc-200 text-zinc-800 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 min-h-[46px]"
+            >
+              <span>✨</span>
+              <span>เปิดสโมสรใหม่ / สมัครสมาชิกโค้ชฟรี</span>
+              <span className="text-zinc-400">&rarr;</span>
+            </Link>
+          </div>
+
+          {/* Clean Security Notice */}
+          <div className="pt-4 border-t border-zinc-100 text-[11px]">
+            <div className="bg-zinc-50/70 border border-zinc-200/70 rounded-2xl p-3.5 text-zinc-600 space-y-1.5">
+              <div className="flex items-center justify-between">
+                <p className="font-bold text-zinc-800 flex items-center gap-1.5">
+                  <span>🛡️</span>
+                  <span>ระบบความปลอดภัยแยกสโมสร</span>
+                </p>
+                <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-zinc-200/60 text-zinc-700 font-bold">
+                  Isolated
+                </span>
+              </div>
+              <p className="text-zinc-500 leading-relaxed text-[11px]">
+                ข้อมูลรายชื่อนักกีฬาและรอบการฝึกซ้อมถูกแยกความปลอดภัยตามแต่ละสโมสร ปลอดภัยและเป็นส่วนตัว
+              </p>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Footer Credits */}
-      <div className="text-center mt-6 space-y-1 text-[11px] text-zinc-400">
-        <p className="font-semibold text-zinc-600">
-          WAVON Sports Management System &bull; {APP_VERSION}
-        </p>
-        <p className="text-[10px]">
-          &copy; {new Date().getFullYear()} WAVON. All rights reserved.
-        </p>
+        {/* Clean Footer */}
+        <div className="text-center py-2 space-y-1 text-xs text-zinc-400">
+          <p className="font-medium text-zinc-600">
+            WAVON Sports Management System &bull; <span className="font-mono">{APP_VERSION}</span>
+          </p>
+          <p className="text-[11px]">
+            &copy; {new Date().getFullYear()} WAVON. All rights reserved.
+          </p>
+        </div>
       </div>
     </div>
   );
 }
+
 
 

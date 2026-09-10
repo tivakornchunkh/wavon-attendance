@@ -1,8 +1,6 @@
 'use client';
 
 import React, { useState, useTransition } from 'react';
-import Link from 'next/link';
-import WavonLogo from '../../components/WavonLogo';
 import { formatUserFriendlyError } from '../../src/lib/error-formatter';
 import { AuthActionResult } from '../actions/auth.actions';
 
@@ -55,31 +53,14 @@ export function LoginForm({ loginAction }: LoginFormProps) {
 
   return (
     <>
-      {/* High-Fidelity Clean Frost Loading Overlay */}
+      {/* Clean Minimalist Loading Overlay */}
       {isPending && (
-        <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-md flex items-center justify-center p-4 transition-all duration-300">
-          <div className="bg-white border border-zinc-200/90 rounded-3xl p-8 flex flex-col items-center gap-4 text-center shadow-[0_25px_60px_-15px_rgba(0,0,0,0.12)] max-w-xs w-full animate-pop">
-            <div className="relative flex items-center justify-center py-2">
-              <div className="absolute w-20 h-20 rounded-full bg-emerald-500/15 animate-ping opacity-75" />
-              <div className="relative animate-pulse">
-                <WavonLogo theme="light" size="lg" />
-              </div>
-            </div>
-
-            <div className="space-y-1 mt-1">
-              <h3 className="text-sm font-black text-zinc-900 flex items-center justify-center gap-2">
-                <span>กำลังเข้าสู่ระบบ</span>
-                <span className="inline-flex gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce [animation-delay:-0.3s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce [animation-delay:-0.15s]" />
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 animate-bounce" />
-                </span>
-              </h3>
-              <p className="text-[11px] text-zinc-500">กำลังตรวจสอบข้อมูลสโมสรและสิทธิ์การใช้งาน</p>
-            </div>
-
-            <div className="w-full bg-zinc-100 rounded-full h-1.5 overflow-hidden mt-1">
-              <div className="h-full bg-emerald-500 rounded-full animate-indeterminate" />
+        <div className="fixed inset-0 z-50 bg-white/80 backdrop-blur-xs flex items-center justify-center p-4 transition-all">
+          <div className="bg-white border border-zinc-200/90 rounded-2xl p-6 flex flex-col items-center gap-3 text-center shadow-lg max-w-xs w-full animate-pop">
+            <div className="w-9 h-9 border-2 border-zinc-200 border-t-zinc-900 rounded-full animate-spin" />
+            <div className="space-y-0.5">
+              <h3 className="text-sm font-bold text-zinc-900">กำลังเข้าสู่ระบบ</h3>
+              <p className="text-xs text-zinc-500">กำลังตรวจสอบข้อมูลสิทธิ์การใช้งาน</p>
             </div>
           </div>
         </div>
@@ -87,7 +68,7 @@ export function LoginForm({ loginAction }: LoginFormProps) {
 
       {/* Error Alert Box */}
       {errorMessage && (
-        <div className="w-full mb-5 p-4 rounded-2xl bg-rose-50/90 border border-rose-200 text-rose-900 shadow-xs animate-alert space-y-1">
+        <div className="w-full mb-4 p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 shadow-2xs space-y-1">
           <div className="flex items-start gap-2.5">
             <span className="text-base shrink-0 leading-none mt-0.5">⚠️</span>
             <div className="space-y-1 text-xs">
@@ -96,7 +77,7 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               </p>
               {errorField === 'username' && (
                 <p className="text-[11px] text-rose-700 font-normal">
-                  💡 หากยังไม่มีบัญชี สามารถกดปุ่ม <strong>&quot;เปิดสโมสรใหม่&quot;</strong> ด้านล่างเพื่อเริ่มใช้งานฟรีทันที
+                  💡 หากยังไม่มีบัญชี สามารถกดปุ่ม <strong>&quot;เปิดสโมสรใหม่&quot;</strong> ด้านล่างเพื่อเริ่มใช้งานฟรี
                 </p>
               )}
               {errorField === 'password' && (
@@ -109,7 +90,7 @@ export function LoginForm({ loginAction }: LoginFormProps) {
         </div>
       )}
 
-      {/* Main Form Fields (Refined Pill Style from Reference Mockup) */}
+      {/* Main Form Fields */}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <div className="flex items-center justify-between mb-1.5">
@@ -117,13 +98,13 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               ชื่อผู้ใช้งาน (Username) <span className="text-rose-500">*</span>
             </label>
             {errorField === 'username' && (
-              <span className="text-[11px] font-bold text-rose-600 animate-pulse">
+              <span className="text-[11px] font-bold text-rose-600">
                 ✕ ตรวจสอบชื่อผู้ใช้
               </span>
             )}
           </div>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
               </svg>
@@ -139,11 +120,11 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               }}
               required
               disabled={isPending}
-              placeholder="Enter your username"
-              className={`w-full text-xs sm:text-sm pl-11 pr-4 py-3.5 rounded-2xl border transition-all min-h-[50px] disabled:opacity-60 focus:outline-none ${
+              placeholder="กรอกชื่อผู้ใช้งานของคุณ"
+              className={`w-full text-xs sm:text-sm pl-10 pr-4 py-3 rounded-xl border transition-colors min-h-[48px] disabled:opacity-60 focus:outline-none ${
                 errorField === 'username'
-                  ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/30 text-rose-900'
-                  : 'border-zinc-200/90 bg-zinc-100/75 hover:bg-zinc-100 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 text-zinc-900 placeholder:text-zinc-400'
+                  ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/40 text-rose-900'
+                  : 'border-zinc-200 bg-zinc-50 hover:bg-white focus:bg-white focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 text-zinc-900 placeholder:text-zinc-400'
               }`}
             />
           </div>
@@ -155,13 +136,13 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               รหัสผ่าน (Password) <span className="text-rose-500">*</span>
             </label>
             {errorField === 'password' && (
-              <span className="text-[11px] font-bold text-rose-600 animate-pulse">
+              <span className="text-[11px] font-bold text-rose-600">
                 ✕ รหัสผ่านไม่ถูกต้อง
               </span>
             )}
           </div>
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-zinc-400">
+            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-zinc-400">
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>
@@ -177,11 +158,11 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               }}
               required
               disabled={isPending}
-              placeholder="Enter your password"
-              className={`w-full text-xs sm:text-sm pl-11 pr-12 py-3.5 rounded-2xl border transition-all min-h-[50px] disabled:opacity-60 focus:outline-none ${
+              placeholder="กรอกรหัสผ่าน"
+              className={`w-full text-xs sm:text-sm pl-10 pr-11 py-3 rounded-xl border transition-colors min-h-[48px] disabled:opacity-60 focus:outline-none ${
                 errorField === 'password'
-                  ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/30 text-rose-900'
-                  : 'border-zinc-200/90 bg-zinc-100/75 hover:bg-zinc-100 focus:bg-white focus:ring-4 focus:ring-emerald-500/15 focus:border-emerald-500 text-zinc-900 placeholder:text-zinc-400'
+                  ? 'border-rose-400 ring-2 ring-rose-200 bg-rose-50/40 text-rose-900'
+                  : 'border-zinc-200 bg-zinc-50 hover:bg-white focus:bg-white focus:border-zinc-900 focus:ring-2 focus:ring-zinc-900/10 text-zinc-900 placeholder:text-zinc-400'
               }`}
             />
             {/* Show/Hide Password Toggle */}
@@ -191,7 +172,7 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               disabled={isPending}
               aria-label={showPassword ? 'ซ่อนรหัสผ่าน' : 'แสดงรหัสผ่าน'}
               aria-pressed={showPassword}
-              className="absolute inset-y-0 right-0 pr-4 flex items-center text-zinc-400 hover:text-zinc-600 transition cursor-pointer"
+              className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-zinc-400 hover:text-zinc-700 transition cursor-pointer"
             >
               {showPassword ? (
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -207,15 +188,15 @@ export function LoginForm({ loginAction }: LoginFormProps) {
           </div>
         </div>
 
-        {/* Vibrant Emerald Submit Button (Matching Reference Mockup) */}
+        {/* Authentic Obsidian Black Submit Button */}
         <button
           type="submit"
           disabled={isPending}
-          className="w-full mt-5 px-6 py-4 bg-emerald-600 hover:bg-emerald-500 active:bg-emerald-700 text-white font-black text-sm sm:text-base rounded-2xl shadow-md shadow-emerald-600/20 hover:shadow-lg hover:shadow-emerald-600/25 transition-all cursor-pointer min-h-[52px] flex items-center justify-center gap-2 disabled:opacity-75 active:scale-[0.98]"
+          className="w-full mt-4 px-5 py-3.5 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition-colors cursor-pointer min-h-[48px] flex items-center justify-center gap-2 disabled:opacity-60"
         >
           {isPending ? (
             <>
-              <svg className="animate-spin h-5 w-5 text-white" fill="none" viewBox="0 0 24 24">
+              <svg className="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
               </svg>
@@ -223,25 +204,12 @@ export function LoginForm({ loginAction }: LoginFormProps) {
             </>
           ) : (
             <>
-              <span>Log In / เข้าสู่ระบบ</span>
-              <span className="text-white/80">&rarr;</span>
+              <span>เข้าสู่ระบบ</span>
+              <span className="text-zinc-400">&rarr;</span>
             </>
           )}
         </button>
       </form>
-
-      {/* Bottom Switch to Register (Clean App Style) */}
-      <div className="pt-5 border-t border-zinc-100 text-center">
-        <p className="text-xs text-zinc-500">
-          ยังไม่มีสโมสรในระบบ?{' '}
-          <Link
-            href="/register"
-            className="font-black text-emerald-700 hover:text-emerald-800 transition hover:underline ml-1"
-          >
-            เปิดสโมสรใหม่ฟรี
-          </Link>
-        </p>
-      </div>
     </>
   );
 }
