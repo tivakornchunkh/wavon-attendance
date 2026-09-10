@@ -18,6 +18,41 @@ interface DashboardViewProps {
   clearDemoDataAction: () => Promise<void>;
 }
 
+function useAnimatedNumber(value: number, duration = 800): number {
+  const [displayValue, setDisplayValue] = useState(0);
+
+  React.useEffect(() => {
+    let startTimestamp: number | null = null;
+    const startValue = 0;
+    const endValue = value;
+
+    if (endValue === 0) {
+      setDisplayValue(0);
+      return;
+    }
+
+    let animationFrameId: number;
+
+    const step = (timestamp: number) => {
+      if (!startTimestamp) startTimestamp = timestamp;
+      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(startValue + (endValue - startValue) * easeProgress);
+      setDisplayValue(current);
+
+      if (progress < 1) {
+        animationFrameId = requestAnimationFrame(step);
+      }
+    };
+
+    animationFrameId = requestAnimationFrame(step);
+
+    return () => cancelAnimationFrame(animationFrameId);
+  }, [value, duration]);
+
+  return displayValue;
+}
+
 export default function DashboardView({
   dashboard,
   allAthletesStats,
@@ -30,6 +65,11 @@ export default function DashboardView({
   seedRealisticDataAction,
   clearDemoDataAction,
 }: DashboardViewProps) {
+  // Animated Counters
+  const animatedRate = useAnimatedNumber(dashboard.overallAttendanceRate);
+  const animatedAthletes = useAnimatedNumber(dashboard.activeAthletes);
+  const animatedSessions = useAnimatedNumber(dashboard.totalSessions);
+
   // Mobile Active Tab: 'overview' | 'rankings' | 'roster'
   const [activeMobileTab, setActiveMobileTab] = useState<'overview' | 'rankings' | 'roster'>('overview');
 
@@ -205,7 +245,7 @@ export default function DashboardView({
       {/* ========================================================= */}
       {/* 2. CLUB READINESS SCORE CARD (Premium High-Impact Banner) */}
       {/* ========================================================= */}
-      <div className="bg-white rounded-2xl border border-zinc-200/80 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div
             className={`w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex items-center justify-center font-black text-2xl sm:text-3xl text-white shadow-md shrink-0 ${readiness.bg}`}
@@ -224,7 +264,7 @@ export default function DashboardView({
               </span>
             </div>
             <p className="text-xs sm:text-sm font-bold text-zinc-900 mt-0.5">
-              คะแนนความพร้อมสโมสร: <strong className="text-base sm:text-lg">{dashboard.overallAttendanceRate}%</strong>
+              คะแนนความพร้อมสโมสร: <strong className="text-base sm:text-lg">{animatedRate}%</strong>
             </p>
             <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-1 sm:line-clamp-none">
               {readiness.description}
@@ -308,7 +348,7 @@ export default function DashboardView({
         {/* 4 Key Metric Cards (Mobile: 2x2 Grid; Desktop: 4 Col) */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5">
           {/* Card 1: Attendance Rate */}
-          <div className="bg-white rounded-2xl border border-zinc-200/80 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
+          <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -328,7 +368,7 @@ export default function DashboardView({
               </div>
               <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
                 <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900">
-                  {dashboard.overallAttendanceRate}%
+                  {animatedRate}%
                 </span>
                 <span className="text-[10px] sm:text-xs text-zinc-400 font-medium hidden sm:inline">เฉลี่ยรวม</span>
               </div>
@@ -348,7 +388,7 @@ export default function DashboardView({
           </div>
 
           {/* Card 2: Active Athletes */}
-          <div className="bg-white rounded-2xl border border-zinc-200/80 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
+          <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -360,7 +400,7 @@ export default function DashboardView({
               </div>
               <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
                 <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900">
-                  {dashboard.activeAthletes}
+                  {animatedAthletes}
                 </span>
                 <span className="text-[10px] sm:text-xs text-zinc-400 font-medium">/ {dashboard.totalAthletes} คน</span>
               </div>
@@ -375,7 +415,7 @@ export default function DashboardView({
           </div>
 
           {/* Card 3: Total Sessions */}
-          <div className="bg-white rounded-2xl border border-zinc-200/80 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
+          <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -387,7 +427,7 @@ export default function DashboardView({
               </div>
               <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
                 <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900">
-                  {dashboard.totalSessions}
+                  {animatedSessions}
                 </span>
                 <span className="text-[10px] sm:text-xs text-zinc-400 font-medium">รอบ</span>
               </div>
@@ -402,7 +442,7 @@ export default function DashboardView({
           </div>
 
           {/* Card 4: Today Summary */}
-          <div className="bg-white rounded-2xl border border-zinc-200/80 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
+          <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-3.5 sm:p-5 shadow-xs hover-lift flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between">
                 <span className="text-[10px] sm:text-xs font-bold text-zinc-400 uppercase tracking-wider">
@@ -440,7 +480,7 @@ export default function DashboardView({
         </div>
 
         {/* Donut Chart & Breakdown Card */}
-        <div className="bg-white rounded-2xl border border-zinc-200/80 p-4 sm:p-6 shadow-xs">
+        <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-4 sm:p-6 shadow-xs">
           <div className="flex items-center justify-between mb-3 pb-2 border-b border-zinc-100">
             <h2 className="text-xs sm:text-sm font-bold text-zinc-900 flex items-center gap-2">
               <span>📊</span>
@@ -498,7 +538,7 @@ export default function DashboardView({
                 </svg>
                 <div className="absolute text-center">
                   <span className="text-xl sm:text-2xl font-black text-zinc-900 block leading-none">
-                    {dashboard.overallAttendanceRate}%
+                    {animatedRate}%
                   </span>
                   <span className="text-[9px] text-zinc-400 font-bold uppercase">เฉลี่ยรวม</span>
                 </div>

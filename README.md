@@ -1,16 +1,33 @@
-# ⚽ WAVON Athlete Attendance System (v2.4)
+# ⚽ WAVON Athlete Attendance System (v2.5)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.4.0-emerald)
+![Version](https://img.shields.io/badge/version-2.5.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
 ![Tests](https://img.shields.io/badge/Vitest-50%20passed-brightgreen)
 
 ---
 
-## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.4.0 (What's New in v2.4.0)
+## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.5.0 (What's New in v2.5.0)
+
+### 1. 🎴 หน้าต่างเครดิตดีไซน์ Bento Grid สไตล์ Cyber-Athlete พร้อมรูปโปรไฟล์จริง
+- ปรับโฉมหน้าต่างเครดิต (`CreditsModal`) เป็นดีไซน์ **Cyber-Athlete Bento Grid** โทนสี Obsidian Black พร้อมแสงรัศมีนีออนสีมรกต (Emerald/Teal Glow)
+- ดึงรูปโปรไฟล์จริงจาก **GitHub Avatar** ของผู้พัฒนา (`tivakornchunkh`) พร้อมกรอบนีออน Pulse แอนิเมชันและเครื่องหมายรับรองสถาปนิกซอฟต์แวร์ (Verified Badge `✓`)
+- ช่องทางติดต่อและติดตามโซเชียลมีเดียทางการ: **GitHub** (`tivakornchunkh`), **Facebook** (`Arm x tivakorn`), และ **Instagram** (`@arm_x_tivakorn`)
+- การ์ด Bento Grid 4 มิติแสดงสเปกสถาปัตยกรรมระดับโปร: 100x Fast Analytics, Turso Cloud LibSQL, High-Precision QR Code Engine และ Argon2id Security
+
+### 2. ⚡ ตัวเลขอัตราการเข้าซ้อมและสถิติวิ่งขึ้นแบบแอนิเมชัน (Smooth Animated Number Counters)
+- พัฒนา Custom Hook `useAnimatedNumber` ด้วย `requestAnimationFrame` และ cubic ease-out curve
+- ตัวเลขสถิติความสม่ำเสมอรวม (Attendance Rate), จำนวนนักกีฬา (Active Athletes), และจำนวนรอบซ้อม (Total Sessions) จะวิ่งขึ้นอย่างนุ่มนวลเมื่อเปิดเข้าหน้าแดชบอร์ด
+
+### 3. 🟢 Neon Accent Glow & Glassmorphism Aesthetics
+- เพิ่มเส้นขอบเรืองแสงนีออน Emerald (`hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5`) ให้กับการ์ดสรุปสถิติทุกใบ, ป้าย Club Readiness Index และวงแหวน Donut Chart เพื่อความสปอร์ต เท่ ทันสมัยระดับ AAA
+
+---
+
+## 📱 ประวัติเวอร์ชัน 2.4.0 (What's New in v2.4.0)
 
 ### 1. 📱 ปรับโฉมแดชบอร์ดบนมือถือด้วย App-Style 3 Segmented Tabs
 - แก้ปัญหาหน้าแดชบอร์ดบนมือถือรกและเลื่อนยาว: จัดกลุ่มเป็น 3 แท็บสลับดูง่ายใน 1 แตะ
