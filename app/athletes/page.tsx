@@ -52,9 +52,9 @@ export default async function AthletesPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
         {/* Form: Add New Athlete */}
         <div className="lg:col-span-1">
-          <div className="bg-white rounded-2xl border border-zinc-200/80 p-5 sm:p-6 shadow-xs lg:sticky lg:top-24">
+          <div className="bg-white rounded-3xl border border-zinc-200/90 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-5 sm:p-6 shadow-xs lg:sticky lg:top-24">
             <h2 className="text-base font-black text-zinc-900 mb-4 flex items-center gap-2">
-              <span className="w-2.5 h-2.5 rounded-full bg-zinc-900" />
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
               <span>เพิ่มนักกีฬาใหม่</span>
             </h2>
 

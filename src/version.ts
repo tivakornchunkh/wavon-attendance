@@ -4,7 +4,7 @@
  * - Minor update (x.y.0): New major features (e.g. anti-cheat, recurring schedule, auto-absent)
  * - Patch update (x.y.z): Bug fixes, UI polishes, and hotfixes
  */
-export const APP_VERSION = 'v2.5.0';
-export const APP_VERSION_RAW = '2.5.0';
-export const APP_RELEASE_NAME = 'Cyber Bento Credits, Animated Analytics & Neon Aesthetics';
+export const APP_VERSION = 'v2.6.0';
+export const APP_VERSION_RAW = '2.6.0';
+export const APP_RELEASE_NAME = 'Permanent QR-Centric Architecture, Multi-Session Scheduling & Sleek Cyberpass UX';
 

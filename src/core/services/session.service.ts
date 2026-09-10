@@ -1,7 +1,7 @@
 import { SessionRepository } from '../../server/repositories/session.repo';
 import { AthleteRepository } from '../../server/repositories/athlete.repo';
 import { AttendanceRepository } from '../../server/repositories/attendance.repo';
-import { CreateSessionInput, QuickSessionInput } from '../validators/session.validator';
+import { CreateSessionInput, QuickSessionInput, UpdateSessionInput } from '../validators/session.validator';
 import { TrainingSession } from '../domain/session';
 import { Athlete } from '../domain/athlete';
 import { getBangkokDateTime } from '../../server/helpers/timezone';
@@ -117,6 +117,51 @@ export class SessionService {
       throw new Error(`Training session with ID ${sessionId} not found.`);
     }
     return await this.sessionRepo.delete(sessionId);
+  }
+
+  /**
+   * แก้ไขข้อมูลรอบการฝึกซ้อม (วัน, เวลา, หัวข้อ) โดยไม่ต้องสร้างรอบหรือ QR ใหม่
+   */
+  async updateSession(sessionId: string, input: UpdateSessionInput): Promise<TrainingSession> {
+    const existing = await this.sessionRepo.findById(sessionId);
+    if (!existing) {
+      throw new Error(`ไม่พบรอบการฝึกซ้อมรหัส ${sessionId}`);
+    }
+
+    const title = input.title ? input.title.trim() : existing.title;
+    const date = input.date ?? existing.date;
+    const startTime = input.startTime ?? existing.startTime;
+    const endTime = input.endTime ?? existing.endTime;
+
+    if (startTime >= endTime) {
+      throw new Error('เวลาเริ่มต้นต้องน้อยกว่าเวลาสิ้นสุด');
+    }
+
+    const overlap = await this.checkSessionOverlap(
+      existing.teamId,
+      date,
+      startTime,
+      endTime,
+      sessionId
+    );
+    if (overlap) {
+      throw new Error(
+        `เวลาการฝึกซ้อมทับซ้อนกับรอบ "${overlap.title}" (${overlap.startTime} - ${overlap.endTime} น.)`
+      );
+    }
+
+    const updated = await this.sessionRepo.update(sessionId, {
+      title,
+      date,
+      startTime,
+      endTime,
+    });
+
+    if (!updated) {
+      throw new Error('ไม่สามารถบันทึกการแก้ไขรอบการฝึกซ้อมได้');
+    }
+
+    return updated;
   }
 
   /**

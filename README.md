@@ -1,16 +1,39 @@
-# ⚽ WAVON Athlete Attendance System (v2.5)
+# ⚽ WAVON Athlete Attendance System (v2.6)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.5.0-emerald)
+![Version](https://img.shields.io/badge/version-2.6.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
-![Tests](https://img.shields.io/badge/Vitest-50%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Vitest-Passed-brightgreen)
 
 ---
 
-## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.5.0 (What's New in v2.5.0)
+## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.6.0 (What's New in v2.6.0)
+
+### 1. 🖨️ สถาปัตยกรรม Permanent QR ศูนย์กลางสนาม (Permanent QR-Centric Architecture)
+- **พิมพ์ครั้งเดียว แปะติดสนาม ใช้งานได้ตลอดกาล:** ไม่ต้องสร้าง QR แยกแต่ละรอบซ้อมอีกต่อไป ทุกรอบซ้อมของสโมสรจะผูกกับ QR ถาวรเดียวกัน
+- **แก้ไขรอบซ้อมได้ทันทีโดยไม่ต้องปรินต์ QR ใหม่:** หากมีการเปลี่ยนเวลา เริ่ม/เลิก หรือเปลี่ยนหัวข้อซ้อม โค้ชสามารถกดแก้ไขรอบซ้อมได้ทันที นักกีฬายังคงสแกน QR เดิมที่ติดบนผนังหรือป้ายสนามได้เหมือนเดิม 100%
+- **ระบบปุ่มฉุกเฉินรีเซ็ต QR Token ใหม่:** เพิ่มฟังก์ชันสร้างโทเคน QR ถาวรชุดใหม่พร้อมกล่องยืนยัน เพื่อความปลอดภัยกรณีมีคนนำ QR Code ไปเผยแพร่นอกสโมสร
+
+### 2. ⏰ ตารางซ้อมประจำหลายรอบต่อวัน (Multi-Session Recurring Schedules)
+- **รองรับรอบซ้อมเช้า-เย็น:** ออกแบบระบบตารางซ้อมประจำใหม่ ให้สามารถกำหนดช่วงเวลาซ้อมได้มากกว่า 1 รอบในวันเดียวกัน (เช่น ซ้อมเช้า 06:00-08:00 และ ซ้อมเย็น 17:00-19:00)
+- **สร้างรอบซ้อมอัตโนมัติแบบไร้รอยต่อ:** เมื่อนักกีฬาสแกน QR ถาวร ระบบจะจับคู่รอบซ้อมของช่วงเวลานั้นๆ อัตโนมัติ พร้อมตรวจจับและป้องกันรอบซ้อมซ้อนทับกัน (Session Overlap Prevention)
+
+### 3. 🛡️ ยกเลิก "รอบด่วน" ลดความสับสน เน้นรอบซ้อมจริงจัง
+- ตัดระบบสร้าง "รอบด่วน (Quick Session)" ที่เกินความจำเป็นออก เพื่อให้การจัดการรอบซ้อมมีระเบียบ ชัดเจน และผูกกับระบบ QR ถาวรอย่างเป็นเอกภาพ
+
+### 4. 💎 ดีไซน์ระดับสตูดิโอ Sleek Frost Light & Minimalist Cyberpass UX/UI
+- **ธีมภาพรวม (Global Theme):** ปรับโฉมโทน Sleek Frost Light พร้อมขอบและลูกเล่นสีนีออนมรกต (Neon Emerald `#10B981`) สะอาดตา ทันสมัย และสบายตาทั้งบนคอมพิวเตอร์และมือถือ
+- **หน้าสแกนเช็คชื่อ (Minimalist Cyberpass):** ดีไซน์สไตล์บัตรนักกีฬาดิจิทัลพรีเมียม ขอบเรืองแสงนีออน แถบแสดงสถานะชัดเจน ปุ่มแตะเช็คชื่อขนาดใหญ่ สัมผัสนุ่มนวล (Tactile Mobile Feedback) และหน้าต่างฉลองความสำเร็จเมื่อเช็คชื่อเสร็จ
+
+### 5. 📖 คู่มือการใช้งานภาพประกอบเสมือนจริง 5 ขั้นตอน (Illustrated Visual User Guide)
+- อัปเกรดหน้าต่างคู่มือการใช้งาน (`UserGuideModal`) ครบ 5 ขั้นตอนสำคัญของการใช้ Permanent QR และ Multi-Session พร้อมภาพจำลอง Mockup SVG/CSS ที่สวยงามและเข้าใจง่ายที่สุด
+
+---
+
+## 📱 ประวัติเวอร์ชัน 2.5.0 (What's New in v2.5.0)
 
 ### 1. 🎴 หน้าต่างเครดิตดีไซน์ Bento Grid สไตล์ Cyber-Athlete พร้อมรูปโปรไฟล์จริง
 - ปรับโฉมหน้าต่างเครดิต (`CreditsModal`) เป็นดีไซน์ **Cyber-Athlete Bento Grid** โทนสี Obsidian Black พร้อมแสงรัศมีนีออนสีมรกต (Emerald/Teal Glow)

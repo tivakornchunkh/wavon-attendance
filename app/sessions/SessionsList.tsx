@@ -4,6 +4,7 @@ import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { cancelSessionAction } from '../actions/session.actions';
+import EditSessionModal from './EditSessionModal';
 
 interface SessionItem {
   id: string;
@@ -253,16 +254,22 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 self-start sm:self-auto">
+              <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
+                <EditSessionModal
+                  session={s}
+                  triggerButtonText="✏️ แก้ไข"
+                  triggerButtonClass="px-3 py-2 rounded-xl text-xs font-bold text-zinc-700 hover:text-zinc-950 bg-white hover:bg-zinc-50 border border-zinc-200 transition cursor-pointer min-h-[40px] shadow-xs active:scale-95"
+                />
+
                 <Link
                   href={`/sessions/${s.id}`}
-                  className={`inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs transition min-h-[42px] ${
+                  className={`inline-flex items-center justify-center px-4 py-2 rounded-xl text-xs font-bold shadow-xs transition min-h-[40px] active:scale-95 ${
                     s.isClosed
                       ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
-                      : 'bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white'
+                      : 'bg-zinc-950 hover:bg-zinc-800 text-white'
                   }`}
                 >
-                  {s.isClosed ? '📋 ดูผล / สรุปยอด' : s.totalChecked === 0 ? '⚡ เริ่มเช็คชื่อ' : '✏️ แก้ไข / ตรวจสอบ'} &rarr;
+                  {s.isClosed ? '📋 สรุปยอด' : s.totalChecked === 0 ? '⚡ เช็คชื่อ' : '🔍 รายชื่อ'} &rarr;
                 </Link>
 
                 <button
@@ -271,10 +278,10 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
                     setCancelError(null);
                     setSessionToCancel(s);
                   }}
-                  className="px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer min-h-[42px]"
+                  className="px-2.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer min-h-[40px]"
                   title="ยกเลิกรอบนี้"
                 >
-                  ยกเลิก
+                  ✕
                 </button>
               </div>
             </div>

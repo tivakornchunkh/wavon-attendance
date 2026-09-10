@@ -13,6 +13,7 @@ function createTestDb() {
     CREATE TABLE teams (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
+      permanent_qr_token TEXT,
       created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
     );
     CREATE TABLE users (

@@ -463,10 +463,11 @@ export default function AthleteCheckInView({
       )}
 
       {/* ======================================================= */}
-      {/* 1. COMPACT SPORTY SESSION HEADER (UX Decision 2)         */}
+      {/* 1. CYBERPASS ATHLETE CREDENTIAL HEADER                  */}
       {/* ======================================================= */}
-      <div className="bg-[#0F1115] text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-zinc-800">
-        <div className="flex items-center justify-between gap-2 flex-wrap">
+      <div className="bg-linear-to-b from-[#0F1318] to-[#0A0D12] text-white rounded-3xl p-4 sm:p-5 shadow-xl border border-zinc-800 ring-1 ring-emerald-500/20 relative overflow-hidden">
+        <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-500/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="flex items-center justify-between gap-2 flex-wrap relative z-10">
           <div className="flex items-center gap-2">
             <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700">
               🏢 {team.name}
@@ -700,34 +701,34 @@ export default function AthleteCheckInView({
               ✓ นักกีฬาทุกคนเช็คชื่อครบเรียบร้อยแล้ว
             </div>
           ) : (
-            <div className="space-y-1.5">
+            <div className="space-y-2">
               {uncheckedList.map((ath) => (
                 <button
                   key={ath.id}
                   type="button"
                   onClick={() => setSelectedAthlete(ath)}
-                  className="w-full text-left p-3 sm:p-3.5 rounded-xl border border-zinc-200/80 bg-white hover:border-zinc-300 hover:bg-zinc-50 active:bg-zinc-100 transition flex items-center justify-between gap-3 min-h-[50px] cursor-pointer shadow-2xs active:scale-[0.99]"
+                  className="w-full text-left p-3.5 rounded-2xl border border-zinc-200/90 bg-white hover:border-emerald-500/50 hover:shadow-md hover:shadow-emerald-500/5 active:bg-zinc-50 transition-all duration-200 flex items-center justify-between gap-3 min-h-[56px] cursor-pointer shadow-2xs active:scale-[0.99] group"
                 >
-                  <div className="flex items-center gap-2.5 overflow-hidden">
-                    <div className="w-9 h-9 rounded-lg bg-zinc-100 text-zinc-800 flex items-center justify-center text-xs font-black shrink-0 border border-zinc-200">
+                  <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="w-10 h-10 rounded-xl bg-zinc-950 text-white flex items-center justify-center text-xs font-black font-mono shrink-0 shadow-2xs group-hover:bg-emerald-600 transition-colors">
                       {ath.athleteCode}
                     </div>
 
                     <div className="overflow-hidden">
-                      <span className="text-xs sm:text-sm font-black text-zinc-900 truncate block">
+                      <span className="text-xs sm:text-sm font-black text-zinc-900 group-hover:text-emerald-950 truncate block">
                         {ath.name}
                       </span>
-                      <p className="text-[10px] text-zinc-400 truncate">
-                        รหัส: {ath.athleteCode} {ath.phone ? `• โทร ${ath.phone}` : ''}
+                      <p className="text-[10px] text-zinc-400 font-mono truncate">
+                        ID: {ath.athleteCode} {ath.phone ? `• ${ath.phone}` : ''}
                       </p>
                     </div>
                   </div>
 
                   <div className="shrink-0">
-                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold ${
+                    <span className={`inline-flex items-center gap-1 px-3.5 py-1.5 rounded-xl text-xs font-bold transition shadow-xs ${
                       activeTab === 'PRESENT'
-                        ? 'bg-emerald-600 text-white'
-                        : 'bg-amber-600 text-white'
+                        ? 'bg-emerald-600 group-hover:bg-emerald-500 text-white'
+                        : 'bg-amber-600 group-hover:bg-amber-500 text-white'
                     }`}>
                       {activeTab === 'PRESENT' ? '✓ เช็คชื่อ' : '📝 แจ้งลา'}
                     </span>

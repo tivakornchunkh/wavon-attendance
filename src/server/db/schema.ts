@@ -1,10 +1,11 @@
 import { sqliteTable, text, uniqueIndex, index, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
-// 1. Teams (รองรับ Multi-team ในอนาคต)
+// 1. Teams (รองรับ Multi-team และ Permanent QR Token)
 export const teams = sqliteTable('teams', {
   id: text('id').primaryKey(),
   name: text('name').notNull(),
+  permanentQrToken: text('permanent_qr_token'),
   createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
 });
 

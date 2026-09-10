@@ -9,6 +9,7 @@ import { AttendanceService } from '../../../src/core/services/attendance.service
 import { autoCloseExpiredSessions } from '../../actions/session.actions';
 import CheckInRoster from './CheckInRoster';
 import CancelSessionButton from './CancelSessionButton';
+import EditSessionModal from '../EditSessionModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,7 +68,18 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
             </div>
           </div>
 
-          <div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <EditSessionModal
+              session={{
+                id: sessionId,
+                title: session.title,
+                date: session.date,
+                startTime: session.startTime,
+                endTime: session.endTime,
+              }}
+              triggerButtonText="✏️ แก้ไขรอบซ้อมนี้"
+              triggerButtonClass="px-4 py-2.5 rounded-xl text-xs font-bold text-zinc-800 hover:text-zinc-950 bg-white hover:bg-zinc-50 border border-zinc-200 hover:border-emerald-500/40 hover:shadow-emerald-500/10 transition flex items-center gap-1.5 cursor-pointer min-h-[42px] shadow-xs active:scale-95"
+            />
             <CancelSessionButton
               sessionId={sessionId}
               sessionTitle={session.title}

@@ -59,6 +59,7 @@ export function createDbConnection(customPath?: string) {
         CREATE TABLE IF NOT EXISTS teams (
           id TEXT PRIMARY KEY,
           name TEXT NOT NULL,
+          permanent_qr_token TEXT,
           created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
         );
         CREATE TABLE IF NOT EXISTS users (
@@ -154,6 +155,13 @@ export function createDbConnection(customPath?: string) {
     const cols = sqlite.pragma('table_info(training_sessions)') as { name: string }[];
     if (cols && !cols.some((c) => c.name === 'is_closed')) {
       sqlite.exec('ALTER TABLE training_sessions ADD COLUMN is_closed INTEGER DEFAULT 0 NOT NULL');
+    }
+  } catch {}
+
+  try {
+    const teamCols = sqlite.pragma('table_info(teams)') as { name: string }[];
+    if (teamCols && !teamCols.some((c) => c.name === 'permanent_qr_token')) {
+      sqlite.exec('ALTER TABLE teams ADD COLUMN permanent_qr_token TEXT');
     }
   } catch {}
 

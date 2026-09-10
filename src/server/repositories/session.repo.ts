@@ -84,6 +84,24 @@ export class SessionRepository {
     return deleted.length > 0;
   }
 
+  async update(
+    id: string,
+    data: Partial<{
+      title: string;
+      date: string;
+      startTime: string;
+      endTime: string;
+      isClosed: number;
+    }>
+  ): Promise<TrainingSession | null> {
+    const updated = await this.db
+      .update(trainingSessions)
+      .set(data)
+      .where(eq(trainingSessions.id, id))
+      .returning();
+    return (updated[0] as TrainingSession) || null;
+  }
+
   async countByTeam(teamId: string, startDate?: string, endDate?: string): Promise<number> {
     const list = await this.findByDateRange(teamId, startDate, endDate);
     return list.length;

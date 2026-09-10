@@ -11,6 +11,7 @@ export function createTestDb() {
     CREATE TABLE teams (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
+      permanent_qr_token TEXT,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
     );
 
