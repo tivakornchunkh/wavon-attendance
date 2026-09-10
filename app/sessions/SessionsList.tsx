@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { cancelSessionAction } from '../actions/session.actions';
 
 interface SessionItem {
@@ -10,6 +11,7 @@ interface SessionItem {
   date: string;
   startTime: string;
   endTime: string;
+  isClosed?: boolean;
   totalChecked: number;
   present: number;
   absent: number;
@@ -22,10 +24,32 @@ interface SessionsListProps {
 }
 
 export default function SessionsList({ sessions, todayStr: propTodayStr }: SessionsListProps) {
+  const router = useRouter();
   const todayStr = propTodayStr || new Date().toISOString().split('T')[0];
   const [activeTab, setActiveTab] = useState<'today_upcoming' | 'history'>('today_upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMonth, setFilterMonth] = useState<string>('ALL');
+
+  // ตรวจสอบเวลาหมดรอบอัตโนมัติบนหน้าจอ (Auto-Check Every 10s)
+  useEffect(() => {
+    const timer = setInterval(() => {
+      const now = new Date();
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      const currentTime = `${hh}:${mm}`;
+
+      // หากมีรอบซ้อมของวันนี้ที่เวลาสิ้นสุดผ่านไปแล้วแต่ยังไม่ได้ปิดรอบ ให้ refresh เพื่อตัดยอดทันที
+      const hasExpiredUnclosed = sessions.some(
+        (s) => !s.isClosed && s.date === todayStr && s.endTime <= currentTime
+      );
+
+      if (hasExpiredUnclosed) {
+        router.refresh();
+      }
+    }, 10000);
+
+    return () => clearInterval(timer);
+  }, [sessions, todayStr, router]);
 
   const todayAndUpcoming = useMemo(
     () => sessions.filter((s) => s.date >= todayStr),
@@ -187,16 +211,21 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="font-bold text-base text-zinc-900">{s.title}</span>
-                  {s.date === todayStr && (
-                    <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
-                      ● วันนี้
+                  {s.isClosed ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-zinc-100 text-zinc-600 border border-zinc-300 inline-flex items-center gap-1">
+                      <span>🔒</span>
+                      <span>ปิดรอบแล้ว (ตัดยอดแล้ว)</span>
                     </span>
-                  )}
-                  {s.date > todayStr && (
+                  ) : s.date === todayStr ? (
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300 inline-flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                      <span>● กำลังเปิดเช็คชื่อ (สด)</span>
+                    </span>
+                  ) : s.date > todayStr ? (
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-zinc-100 text-zinc-700">
                       ล่วงหน้า
                     </span>
-                  )}
+                  ) : null}
                 </div>
                 <div className="text-xs text-zinc-500 mt-1 flex items-center gap-3">
                   <span>📅 {s.date}</span>
@@ -207,7 +236,9 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
                     มา: {s.present}
                   </span>
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-rose-50 text-rose-700 border border-rose-200">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold ${
+                    s.absent > 0 ? 'bg-rose-100 text-rose-800 border border-rose-300' : 'bg-rose-50 text-rose-700 border border-rose-200'
+                  }`}>
                     ขาด: {s.absent}
                   </span>
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-lg text-xs font-bold bg-amber-50 text-amber-700 border border-amber-200">
@@ -222,9 +253,13 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
               <div className="flex items-center gap-2.5 self-start sm:self-auto">
                 <Link
                   href={`/sessions/${s.id}`}
-                  className="inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white shadow-xs transition min-h-[42px]"
+                  className={`inline-flex items-center justify-center px-4 py-2.5 rounded-xl text-xs font-bold shadow-xs transition min-h-[42px] ${
+                    s.isClosed
+                      ? 'bg-zinc-100 hover:bg-zinc-200 text-zinc-800 border border-zinc-300'
+                      : 'bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white'
+                  }`}
                 >
-                  {s.totalChecked === 0 ? '⚡ เริ่มเช็คชื่อ' : '✏️ แก้ไข / ตรวจสอบ'} &rarr;
+                  {s.isClosed ? '📋 ดูผล / สรุปยอด' : s.totalChecked === 0 ? '⚡ เริ่มเช็คชื่อ' : '✏️ แก้ไข / ตรวจสอบ'} &rarr;
                 </Link>
 
                 <form

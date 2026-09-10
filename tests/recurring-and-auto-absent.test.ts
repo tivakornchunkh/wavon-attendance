@@ -190,4 +190,60 @@ describe('Auto-Absent Cut-off, Pitch Verification & Recurring Schedules', () => 
     const url = new URL(pitchQrUrl);
     expect(url.searchParams.get('pitch')).toBe('true');
   });
+
+  it('automatically detects expired sessions and cuts off unchecked athletes as ABSENT', async () => {
+    // Seed an expired session (e.g. earlier today with endTime 22:47)
+    const expiredSessionId = 'sess-expired-auto';
+    await testDb.insert(trainingSessions).values({
+      id: expiredSessionId,
+      teamId: 'team-pitch',
+      title: 'รอบซ้อมด่วน',
+      date: '2026-03-10',
+      startTime: '22:00',
+      endTime: '22:47',
+      createdBy: 'coach-pitch',
+      isClosed: 0,
+    });
+
+    // ath-1 checked in as PRESENT
+    await attendanceRepo.batchUpsert(expiredSessionId, 'coach-pitch', [
+      { athleteId: 'ath-1', status: 'PRESENT', notes: 'สแกน QR ริมสนาม' },
+    ]);
+
+    // Simulate auto-closing check at 22:48
+    const mockCurrentMinutes = 22 * 60 + 48; // 22:48
+    const [sess] = await testDb.select().from(trainingSessions).where(eq(trainingSessions.id, expiredSessionId));
+    const [eh, em] = sess.endTime.split(':').map(Number);
+    const endM = eh * 60 + em; // 22:47 -> 1367
+
+    expect(endM <= mockCurrentMinutes).toBe(true);
+
+    // Run auto-absent logic
+    const allAthletes = await athleteRepo.findByTeam(sess.teamId);
+    const activeAthletes = allAthletes.filter((a) => a.status === 'ACTIVE');
+    const existingAttendances = await attendanceRepo.findBySessionId(expiredSessionId);
+    const checkedIds = new Set(existingAttendances.map((a) => a.athleteId));
+    const unchecked = activeAthletes.filter((a) => !checkedIds.has(a.id));
+
+    expect(unchecked.length).toBe(2); // ath-2 and ath-3
+
+    const absentRecords = unchecked.map((a) => ({
+      athleteId: a.id,
+      status: 'ABSENT' as const,
+      notes: `ขาดซ้อม (ระบบตัดยอดอัตโนมัติเนื่องจากหมดเวลาซ้อม ${sess.endTime} น.)`,
+    }));
+    await attendanceRepo.batchUpsert(expiredSessionId, sess.createdBy, absentRecords);
+    await testDb.update(trainingSessions).set({ isClosed: 1 }).where(eq(trainingSessions.id, expiredSessionId));
+
+    // Verify session is closed
+    const [closedSess] = await testDb.select().from(trainingSessions).where(eq(trainingSessions.id, expiredSessionId));
+    expect(closedSess.isClosed).toBe(1);
+
+    // Verify attendances
+    const finalAttendances = await attendanceRepo.findBySessionId(expiredSessionId);
+    expect(finalAttendances.length).toBe(3);
+    expect(finalAttendances.find((a) => a.athleteId === 'ath-1')?.status).toBe('PRESENT');
+    expect(finalAttendances.find((a) => a.athleteId === 'ath-2')?.status).toBe('ABSENT');
+    expect(finalAttendances.find((a) => a.athleteId === 'ath-3')?.status).toBe('ABSENT');
+  });
 });

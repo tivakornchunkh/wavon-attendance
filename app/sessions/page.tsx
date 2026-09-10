@@ -9,6 +9,7 @@ import {
   createQuickSessionAction,
   getRecurringScheduleAction,
   ensureTodayRecurringSession,
+  autoCloseExpiredSessions,
 } from '../actions/session.actions';
 import SessionsList from './SessionsList';
 import { QuickSessionForm } from './QuickSessionForm';
@@ -24,7 +25,10 @@ export default async function SessionsPage() {
   const sessionRepo = new SessionRepository(db);
   const attendanceRepo = new AttendanceRepository(db);
 
-  // ตรวจสอบและสร้างรอบซ้อมประจำวันอัตโนมัติหากวันนี้ตรงกับตารางซ้อมประจำ (Recurring Schedule)
+  // 1. ตรวจสอบและตัดยอดรอบซ้อมที่หมดเวลาแล้วโดยอัตโนมัติ (Auto-Close & Auto-Absent Cut-off)
+  await autoCloseExpiredSessions(teamId);
+
+  // 2. ตรวจสอบและสร้างรอบซ้อมประจำวันอัตโนมัติหากวันนี้ตรงกับตารางซ้อมประจำ (Recurring Schedule)
   await ensureTodayRecurringSession(teamId);
 
   const sessions = await sessionRepo.findByDateRange(teamId);
@@ -40,6 +44,7 @@ export default async function SessionsPage() {
       const leave = atts.filter((a) => a.status === 'LEAVE').length;
       return {
         ...sess,
+        isClosed: sess.isClosed === 1,
         totalChecked: atts.length,
         present,
         absent,

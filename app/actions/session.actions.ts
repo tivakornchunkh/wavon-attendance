@@ -170,6 +170,87 @@ export async function closeSessionAndMarkAbsentAction(sessionId: string): Promis
 }
 
 /**
+ * ตรวจสอบและตัดยอดรอบซ้อมที่หมดเวลาแล้วโดยอัตโนมัติ (Auto-Close & Auto-Absent Cut-off)
+ * 1. รอบซ้อมที่วันที่ผ่านมาแล้ว (date < todayStr)
+ * 2. รอบซ้อมของวันนี้ที่เวลาสิ้นสุดผ่านไปแล้ว (date === todayStr && endMinutes <= currentMinutes)
+ * นักกีฬาที่ยังไม่ได้เช็คชื่อและไม่ได้แจ้งลา จะถูกบันทึกเป็น "ขาด (ABSENT)" อัตโนมัติทันที
+ * และเปลี่ยนสถานะรอบซ้อมเป็น isClosed = 1
+ */
+export async function autoCloseExpiredSessions(teamId?: string): Promise<{ closedCount: number; totalMarkedAbsent: number }> {
+  try {
+    const bkk = getBangkokDateTime();
+    const todayStr = bkk.dateStr;
+    const currentMinutes = bkk.currentMinutes;
+
+    // ดึงรอบซ้อมทั้งหมดที่ยังไม่ได้ปิด (isClosed = 0)
+    let openSessions = await db
+      .select()
+      .from(trainingSessions)
+      .where(eq(trainingSessions.isClosed, 0));
+
+    if (teamId) {
+      openSessions = openSessions.filter((s) => s.teamId === teamId);
+    }
+
+    let closedCount = 0;
+    let totalMarkedAbsent = 0;
+
+    for (const session of openSessions) {
+      // ตรวจสอบว่าหมดเวลาหรือยัง
+      const isPastDate = session.date < todayStr;
+
+      const [eh, em] = (session.endTime || '00:00').split(':').map(Number);
+      const endMinutes = (eh || 0) * 60 + (em || 0);
+      const isTodayExpired = session.date === todayStr && endMinutes <= currentMinutes;
+
+      if (isPastDate || isTodayExpired) {
+        // 1. ดึงนักกีฬาทั้งหมดในทีม
+        const allAthletes = await athleteRepo.findByTeam(session.teamId);
+        const activeAthletes = allAthletes.filter((a) => a.status === 'ACTIVE');
+
+        // 2. ดึงประวัติการเช็คชื่อที่มีอยู่แล้ว
+        const existingAttendances = await attendanceRepo.findBySessionId(session.id);
+        const checkedAthleteIds = new Set(existingAttendances.map((a) => a.athleteId));
+
+        // 3. หานักกีฬาที่ยังไม่ได้เช็คชื่อและไม่ได้แจ้งลา
+        const uncheckedAthletes = activeAthletes.filter((a) => !checkedAthleteIds.has(a.id));
+
+        const autoAbsentNote = `ขาดซ้อม (ระบบตัดยอดอัตโนมัติเนื่องจากหมดเวลาซ้อม ${session.endTime} น.)`;
+
+        if (uncheckedAthletes.length > 0) {
+          const absentRecords = uncheckedAthletes.map((a) => ({
+            athleteId: a.id,
+            status: 'ABSENT' as AttendanceStatus,
+            notes: autoAbsentNote,
+          }));
+
+          await attendanceRepo.batchUpsert(session.id, session.createdBy, absentRecords);
+          totalMarkedAbsent += uncheckedAthletes.length;
+        }
+
+        // 4. บันทึกปิดรอบซ้อม (isClosed = 1)
+        await db
+          .update(trainingSessions)
+          .set({ isClosed: 1 })
+          .where(eq(trainingSessions.id, session.id));
+
+        closedCount++;
+      }
+    }
+
+    if (closedCount > 0) {
+      revalidatePath('/sessions');
+      revalidatePath('/');
+    }
+
+    return { closedCount, totalMarkedAbsent };
+  } catch (err: unknown) {
+    console.error('autoCloseExpiredSessions error:', err);
+    return { closedCount: 0, totalMarkedAbsent: 0 };
+  }
+}
+
+/**
  * นักกีฬาสแกน QR เช็คชื่อเข้าซ้อม หรือแจ้งลาซ้อมด้วยตนเอง (4A, 3A, 10B)
  */
 export async function selfCheckInAction(

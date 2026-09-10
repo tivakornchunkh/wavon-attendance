@@ -6,7 +6,7 @@ import { AthleteRepository } from '../../../src/server/repositories/athlete.repo
 import { AttendanceRepository } from '../../../src/server/repositories/attendance.repo';
 import { SessionService } from '../../../src/core/services/session.service';
 import { AttendanceService } from '../../../src/core/services/attendance.service';
-import { cancelSessionAction } from '../../actions/session.actions';
+import { cancelSessionAction, autoCloseExpiredSessions } from '../../actions/session.actions';
 import CheckInRoster from './CheckInRoster';
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +17,9 @@ interface SessionDetailPageProps {
 
 export default async function SessionDetailPage({ params }: SessionDetailPageProps) {
   const { id: sessionId } = await params;
+
+  // ตรวจสอบและตัดยอดขาดอัตโนมัติหากรอบซ้อมหมดเวลาแล้ว
+  await autoCloseExpiredSessions();
 
   const sessionRepo = new SessionRepository(db);
   const athleteRepo = new AthleteRepository(db);

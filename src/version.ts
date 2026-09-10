@@ -4,7 +4,7 @@
  * - Minor update (x.y.0): New major features (e.g. anti-cheat, recurring schedule, auto-absent)
  * - Patch update (x.y.z): Bug fixes, UI polishes, and hotfixes
  */
-export const APP_VERSION = 'v2.1.2';
-export const APP_VERSION_RAW = '2.1.2';
-export const APP_RELEASE_NAME = 'Automatic Recurring Daily Session Engine';
+export const APP_VERSION = 'v2.1.3';
+export const APP_VERSION_RAW = '2.1.3';
+export const APP_RELEASE_NAME = 'Real-Time Auto-Close & Auto-Absent Engine';
 

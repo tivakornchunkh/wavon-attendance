@@ -7,6 +7,7 @@ import { StatisticsService } from '../src/core/services/statistics.service';
 import { getCurrentSession } from '../src/server/helpers/auth';
 import { DEFAULT_TEAM_ID } from '../src/server/helpers/default-team';
 import { seedRealisticDataAction, clearDemoDataAction } from './actions/seed.actions';
+import { autoCloseExpiredSessions } from './actions/session.actions';
 
 export const dynamic = 'force-dynamic';
 
@@ -60,6 +61,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const session = await getCurrentSession();
   const teamId = session.team?.id || DEFAULT_TEAM_ID;
+
+  // ตรวจสอบและตัดยอดรอบซ้อมที่หมดเวลาแล้วโดยอัตโนมัติ
+  await autoCloseExpiredSessions(teamId);
 
   const athleteRepo = new AthleteRepository(db);
   const sessionRepo = new SessionRepository(db);
