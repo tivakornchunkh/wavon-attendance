@@ -271,15 +271,28 @@ describe('Attendance & Session Services', () => {
       const beforeCancel = await attendanceRepo.findBySessionId(session.id);
       expect(beforeCancel.length).toBe(1);
 
+      // Also update attendance to generate an audit log
+      await attendanceService.updateAttendance(beforeCancel[0].id, {
+        status: 'PRESENT',
+        changedBy: coachId,
+        reason: 'นักกีฬามาสาย',
+      });
+
+      const logsBefore = await attendanceService.getSessionAuditLogs(session.id);
+      expect(logsBefore.length).toBe(1);
+
       // Cancel session
       await sessionService.cancelSession(session.id);
 
-      // Verify session and attendances are completely removed
+      // Verify session, attendances, and audit logs are completely removed
       const afterCancelSession = await sessionRepo.findById(session.id);
       expect(afterCancelSession).toBeNull();
 
       const afterCancelAtts = await attendanceRepo.findBySessionId(session.id);
       expect(afterCancelAtts.length).toBe(0);
+
+      const logsAfter = await attendanceService.getSessionAuditLogs(session.id);
+      expect(logsAfter.length).toBe(0);
     });
   });
 });

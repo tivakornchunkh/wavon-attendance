@@ -1,6 +1,6 @@
 import { eq, and, gte, lte, desc } from 'drizzle-orm';
 import { DatabaseInstance } from '../db/client';
-import { trainingSessions } from '../db/schema';
+import { trainingSessions, attendances, attendanceLogs } from '../db/schema';
 import { TrainingSession } from '../../core/domain/session';
 
 export class SessionRepository {
@@ -71,6 +71,12 @@ export class SessionRepository {
   }
 
   async delete(id: string): Promise<boolean> {
+    try {
+      await this.db.delete(attendanceLogs).where(eq(attendanceLogs.sessionId, id));
+      await this.db.delete(attendances).where(eq(attendances.sessionId, id));
+    } catch (err) {
+      console.warn('Cascade delete session attendances warning:', err);
+    }
     const deleted = await this.db
       .delete(trainingSessions)
       .where(eq(trainingSessions.id, id))

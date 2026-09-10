@@ -114,12 +114,19 @@ export async function markAllPresentAction(sessionId: string, athleteIds: string
   revalidatePath('/');
 }
 
-export async function cancelSessionAction(sessionId: string): Promise<void> {
-  await sessionService.cancelSession(sessionId);
-
-  revalidatePath('/sessions');
-  revalidatePath('/');
-  redirect('/sessions');
+export async function cancelSessionAction(sessionId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    await sessionService.cancelSession(sessionId);
+    revalidatePath('/sessions');
+    revalidatePath('/');
+    return { success: true };
+  } catch (err: unknown) {
+    console.error('Cancel session error:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการยกเลิกรอบซ้อม',
+    };
+  }
 }
 
 /**

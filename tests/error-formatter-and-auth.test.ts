@@ -64,9 +64,9 @@ describe('Error Formatter & Friendly Diagnostics', () => {
 });
 
 describe('Version Synchronization', () => {
-  it('correctly reports v2.2.1 as the active app version', () => {
-    expect(APP_VERSION).toBe('v2.2.1');
-    expect(APP_VERSION_RAW).toBe('2.2.1');
+  it('correctly reports v2.2.2 as the active app version', () => {
+    expect(APP_VERSION).toBe('v2.2.2');
+    expect(APP_VERSION_RAW).toBe('2.2.2');
   });
 });
 

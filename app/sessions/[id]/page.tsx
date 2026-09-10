@@ -6,8 +6,9 @@ import { AthleteRepository } from '../../../src/server/repositories/athlete.repo
 import { AttendanceRepository } from '../../../src/server/repositories/attendance.repo';
 import { SessionService } from '../../../src/core/services/session.service';
 import { AttendanceService } from '../../../src/core/services/attendance.service';
-import { cancelSessionAction, autoCloseExpiredSessions } from '../../actions/session.actions';
+import { autoCloseExpiredSessions } from '../../actions/session.actions';
 import CheckInRoster from './CheckInRoster';
+import CancelSessionButton from './CancelSessionButton';
 
 export const dynamic = 'force-dynamic';
 
@@ -67,20 +68,12 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
           </div>
 
           <div>
-            <form
-              action={async () => {
-                'use server';
-                await cancelSessionAction(sessionId);
-              }}
-            >
-              <button
-                type="submit"
-                className="px-3.5 py-2 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer min-h-[40px]"
-                title="ยกเลิกรอบนี้"
-              >
-                ยกเลิกรอบซ้อมนี้
-              </button>
-            </form>
+            <CancelSessionButton
+              sessionId={sessionId}
+              sessionTitle={session.title}
+              sessionDate={session.date}
+              sessionTime={`${session.startTime} - ${session.endTime}`}
+            />
           </div>
         </div>
       </div>

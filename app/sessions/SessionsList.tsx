@@ -29,6 +29,9 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
   const [activeTab, setActiveTab] = useState<'today_upcoming' | 'history'>('today_upcoming');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterMonth, setFilterMonth] = useState<string>('ALL');
+  const [sessionToCancel, setSessionToCancel] = useState<SessionItem | null>(null);
+  const [isCanceling, setIsCanceling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
 
   // ตรวจสอบเวลาหมดรอบอัตโนมัติบนหน้าจอ (Auto-Check Every 10s)
   useEffect(() => {
@@ -262,28 +265,96 @@ export default function SessionsList({ sessions, todayStr: propTodayStr }: Sessi
                   {s.isClosed ? '📋 ดูผล / สรุปยอด' : s.totalChecked === 0 ? '⚡ เริ่มเช็คชื่อ' : '✏️ แก้ไข / ตรวจสอบ'} &rarr;
                 </Link>
 
-                <form
-                  action={async () => {
-                    if (
-                      confirm(
-                        'คุณแน่ใจหรือไม่ว่าต้องการยกเลิกรอบนี้? (ข้อมูลเช็คชื่อในรอบนี้จะถูกลบและไม่คิดในสถิติ)'
-                      )
-                    ) {
-                      await cancelSessionAction(s.id);
-                    }
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCancelError(null);
+                    setSessionToCancel(s);
                   }}
+                  className="px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer min-h-[42px]"
+                  title="ยกเลิกรอบนี้"
                 >
-                  <button
-                    type="submit"
-                    className="px-3 py-2.5 rounded-xl text-xs font-bold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer min-h-[42px]"
-                    title="ยกเลิกรอบนี้"
-                  >
-                    ยกเลิก
-                  </button>
-                </form>
+                  ยกเลิก
+                </button>
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Session Cancel Confirmation Modal */}
+      {sessionToCancel && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-150">
+          <div className="bg-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-zinc-200 animate-in zoom-in-95 duration-150">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center text-2xl mx-auto mb-3">
+              ⚠️
+            </div>
+
+            <h3 className="text-base sm:text-lg font-black text-zinc-900 text-center">
+              ยืนยันการยกเลิกรอบซ้อม?
+            </h3>
+
+            <p className="text-xs text-zinc-500 text-center mt-2 leading-relaxed">
+              คุณกำลังจะยกเลิกรอบ <strong>&ldquo;{sessionToCancel.title}&rdquo;</strong>
+              <br />
+              (วันที่ {sessionToCancel.date} เวลา {sessionToCancel.startTime} - {sessionToCancel.endTime} น.)
+              <br />
+              <span className="text-rose-600 font-semibold mt-1 inline-block">
+                ข้อมูลการเช็คชื่อทั้งหมดในรอบนี้จะถูกลบและไม่นำมาคิดในสถิติ
+              </span>
+            </p>
+
+            {cancelError && (
+              <div className="mt-3 p-2.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs text-center font-bold">
+                {cancelError}
+              </div>
+            )}
+
+            <div className="mt-5 flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={() => {
+                  setSessionToCancel(null);
+                  setCancelError(null);
+                }}
+                disabled={isCanceling}
+                className="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-bold hover:bg-zinc-50 transition cursor-pointer min-h-[42px]"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  setIsCanceling(true);
+                  setCancelError(null);
+                  try {
+                    const res = await cancelSessionAction(sessionToCancel.id);
+                    if (res.success) {
+                      setSessionToCancel(null);
+                      router.refresh();
+                    } else {
+                      setCancelError(res.error || 'เกิดข้อผิดพลาดในการยกเลิกรอบซ้อม');
+                    }
+                  } catch {
+                    setCancelError('เกิดข้อผิดพลาดในการเชื่อมต่อเซิร์ฟเวอร์');
+                  } finally {
+                    setIsCanceling(false);
+                  }
+                }}
+                disabled={isCanceling}
+                className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] disabled:opacity-50"
+              >
+                {isCanceling ? (
+                  <>
+                    <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    <span>กำลังยกเลิก...</span>
+                  </>
+                ) : (
+                  <span>ยืนยันยกเลิก</span>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
