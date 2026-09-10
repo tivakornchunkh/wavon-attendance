@@ -11,26 +11,48 @@ import { CreateAthleteSchema } from '../../src/core/validators/athlete.validator
 const athleteRepo = new AthleteRepository(db);
 const athleteService = new AthleteService(athleteRepo);
 
-export async function createAthleteAction(formData: FormData): Promise<void> {
-  const session = await getCurrentSession();
-  const teamId = session.team?.id || DEFAULT_TEAM_ID;
+export async function createAthleteAction(
+  formData: FormData
+): Promise<{ success: boolean; athlete?: { id: string; name: string; athleteCode: string }; error?: string }> {
+  try {
+    const session = await getCurrentSession();
+    const teamId = session.team?.id || DEFAULT_TEAM_ID;
 
-  const name = formData.get('name') as string;
-  const athleteCode = (formData.get('athleteCode') as string) || undefined;
-  const phone = (formData.get('phone') as string) || null;
-  const startDate = (formData.get('startDate') as string) || new Date().toISOString().split('T')[0];
+    const name = formData.get('name') as string;
+    const athleteCode = (formData.get('athleteCode') as string) || undefined;
+    const phone = (formData.get('phone') as string) || null;
+    const startDate = (formData.get('startDate') as string) || new Date().toISOString().split('T')[0];
 
-  const validated = CreateAthleteSchema.parse({
-    teamId,
-    name,
-    athleteCode: athleteCode ? athleteCode.trim() : undefined,
-    phone,
-    startDate,
-    status: 'ACTIVE',
-  });
+    const validated = CreateAthleteSchema.parse({
+      teamId,
+      name,
+      athleteCode: athleteCode ? athleteCode.trim() : undefined,
+      phone,
+      startDate,
+      status: 'ACTIVE',
+    });
 
-  await athleteService.createAthlete(validated);
-  revalidatePath('/athletes');
+    const created = await athleteService.createAthlete(validated);
+    try {
+      revalidatePath('/athletes');
+      revalidatePath('/');
+    } catch {}
+
+    return {
+      success: true,
+      athlete: {
+        id: created.id,
+        name: created.name,
+        athleteCode: created.athleteCode,
+      },
+    };
+  } catch (err: unknown) {
+    console.error('createAthleteAction error:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการเพิ่มนักกีฬา',
+    };
+  }
 }
 
 export async function toggleAthleteStatusAction(
