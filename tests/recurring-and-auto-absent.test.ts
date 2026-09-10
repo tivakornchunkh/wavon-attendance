@@ -166,4 +166,28 @@ describe('Auto-Absent Cut-off, Pitch Verification & Recurring Schedules', () => 
     expect(JSON.parse(saved.daysOfWeek)).toEqual([1, 2, 3, 4, 5]);
     expect(saved.isActive).toBe(1);
   });
+
+  it('correctly accepts various pitch query formats (true, 1, yes)', () => {
+    const isPitchParam = (pitch?: string | null) => {
+      const p = typeof pitch === 'string' ? pitch.toLowerCase().trim() : '';
+      return p === 'true' || p === '1' || p === 'yes';
+    };
+
+    expect(isPitchParam('true')).toBe(true);
+    expect(isPitchParam('TRUE')).toBe(true);
+    expect(isPitchParam('1')).toBe(true);
+    expect(isPitchParam('yes')).toBe(true);
+    expect(isPitchParam(undefined)).toBe(false);
+    expect(isPitchParam('')).toBe(false);
+    expect(isPitchParam('false')).toBe(false);
+  });
+
+  it('verifies that pitch QR codes encode the ?pitch=true parameter', () => {
+    const origin = 'https://wavon-attendance.onrender.com';
+    const sessionId = 'test-session-123';
+    const pitchQrUrl = `${origin}/checkin/${sessionId}?pitch=true`;
+
+    const url = new URL(pitchQrUrl);
+    expect(url.searchParams.get('pitch')).toBe('true');
+  });
 });

@@ -24,7 +24,8 @@ export default async function CheckInPage({ params, searchParams }: PageProps) {
   const { sessionId } = await params;
   const { pitch } = await searchParams;
 
-  const isPitchVerified = pitch === 'true';
+  const pitchParam = typeof pitch === 'string' ? pitch.toLowerCase().trim() : '';
+  const isPitchVerified = pitchParam === 'true' || pitchParam === '1' || pitchParam === 'yes';
 
   const sessionRepo = new SessionRepository(db);
   const athleteRepo = new AthleteRepository(db);

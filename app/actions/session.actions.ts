@@ -3,8 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { db } from '../../src/server/db/client';
-import { trainingSessions, recurringSchedules, teams } from '../../src/server/db/schema';
+import { trainingSessions, recurringSchedules, teams, users } from '../../src/server/db/schema';
 import { eq, and, desc } from 'drizzle-orm';
+import { getBangkokDateTime } from '../../src/server/helpers/timezone';
 import { SessionRepository } from '../../src/server/repositories/session.repo';
 import { AthleteRepository } from '../../src/server/repositories/athlete.repo';
 import { AttendanceRepository } from '../../src/server/repositories/attendance.repo';
@@ -141,9 +142,8 @@ export async function closeSessionAndMarkAbsentAction(sessionId: string): Promis
   // 3. หานักกีฬาที่ยังไม่ได้เช็คชื่อและไม่ได้แจ้งลา
   const uncheckedAthletes = activeAthletes.filter((a) => !checkedAthleteIds.has(a.id));
 
-  const now = new Date();
-  const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const autoAbsentNote = `ขาดซ้อม (ระบบตัดยอดอัตโนมัติเมื่อปิดรอบเวลา ${timeStr} น.)`;
+  const bkk = getBangkokDateTime();
+  const autoAbsentNote = `ขาดซ้อม (ระบบตัดยอดอัตโนมัติเมื่อปิดรอบเวลา ${bkk.timeStr} น.)`;
 
   if (uncheckedAthletes.length > 0) {
     const absentRecords = uncheckedAthletes.map((a) => ({
@@ -308,9 +308,9 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
     throw new Error('ไม่พบสโมสรนี้ในระบบ');
   }
 
-  const now = new Date();
-  const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+  const bkk = getBangkokDateTime();
+  const todayStr = bkk.dateStr;
+  const currentMinutes = bkk.currentMinutes;
 
   // 1. ค้นหารอบซ้อมของวันนี้ที่ยังไม่ถูกปิด
   const todaySessions = await db
@@ -366,7 +366,7 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
 
   if (schedule) {
     const days: number[] = JSON.parse(schedule.daysOfWeek || '[]');
-    const todayDayOfWeek = now.getDay(); // 0=Sun, 1=Mon...
+    const todayDayOfWeek = bkk.dayOfWeek; // 0=Sun, 1=Mon...
 
     if (days.includes(todayDayOfWeek)) {
       const [sh, sm] = schedule.startTime.split(':').map(Number);
@@ -376,8 +376,10 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
 
       // ถ้าอยู่ในช่วงเวลาซ้อมของวันนี้ ให้สร้างรอบซ้อมของวันนี้อัตโนมัติ
       if (currentMinutes >= startM && currentMinutes <= endM) {
-        // หา coach ประจำทีม
-        const [coach] = await db.select().from(teams).where(eq(teams.id, clubId));
+        // หา coach ประจำทีมเพื่อใช้เป็น createdBy (ไม่ใช้ 'system' เพื่อป้องกัน foreign key error)
+        const [coach] = await db.select().from(users).where(eq(users.teamId, clubId)).limit(1);
+        const [firstUser] = await db.select().from(users).limit(1);
+        const creatorId = coach?.id || firstUser?.id || 'coach_default';
         const newSessionId = `sess-${crypto.randomUUID().slice(0, 8)}`;
         
         await db.insert(trainingSessions).values({
@@ -387,7 +389,7 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
           date: todayStr,
           startTime: schedule.startTime,
           endTime: schedule.endTime,
-          createdBy: 'system',
+          createdBy: creatorId,
           isClosed: 0,
         });
 

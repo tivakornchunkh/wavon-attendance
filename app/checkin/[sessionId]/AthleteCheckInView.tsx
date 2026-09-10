@@ -42,7 +42,8 @@ export default function AthleteCheckInView({
   initialAttendances,
   isPitchVerified = true,
 }: AthleteCheckInViewProps) {
-  const [activeTab, setActiveTab] = useState<'PRESENT' | 'LEAVE'>('PRESENT');
+  const [pitchVerifiedState, setPitchVerifiedState] = useState(isPitchVerified);
+  const [activeTab, setActiveTab] = useState<'PRESENT' | 'LEAVE'>(isPitchVerified ? 'PRESENT' : 'LEAVE');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedAthlete, setSelectedAthlete] = useState<Athlete | null>(null);
   const [leaveReason, setLeaveReason] = useState('ลาป่วย');
@@ -80,6 +81,22 @@ export default function AthleteCheckInView({
     } catch {}
   }, []);
 
+  useEffect(() => {
+    if (isPitchVerified) {
+      try {
+        sessionStorage.setItem(`wavon_pitch_verified_${session.id}`, 'true');
+      } catch {}
+      setPitchVerifiedState(true);
+    } else {
+      try {
+        const saved = sessionStorage.getItem(`wavon_pitch_verified_${session.id}`);
+        if (saved === 'true') {
+          setPitchVerifiedState(true);
+        }
+      } catch {}
+    }
+  }, [isPitchVerified, session.id]);
+
   const rememberedAthlete = rememberedAthleteId
     ? athletes.find((a) => a.id === rememberedAthleteId)
     : null;
@@ -114,7 +131,7 @@ export default function AthleteCheckInView({
     if (!athleteToSubmit || isPending) return;
 
     // 4A: Check Pitch Anti-cheat
-    if (activeTab === 'PRESENT' && !isPitchVerified) {
+    if (activeTab === 'PRESENT' && !pitchVerifiedState) {
       showToast('📍 ต้องสแกน QR Code ริมสนามจริงเพื่อเช็คชื่อเข้าซ้อม (หากไม่ได้มาสนาม สามารถกดแท็บ "แจ้งลาซ้อม" ได้ทันที)', 'error');
       return;
     }
@@ -136,7 +153,7 @@ export default function AthleteCheckInView({
           athleteToSubmit.id,
           activeTab,
           finalReason,
-          isPitchVerified
+          pitchVerifiedState
         );
 
         // Update local state instantly
@@ -220,11 +237,14 @@ export default function AthleteCheckInView({
       )}
 
       {/* 4A: Notice if opened via LINE without Pitch Verification */}
-      {!isPitchVerified && (
-        <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-900 text-xs flex items-center gap-2.5">
-          <span className="text-lg">📱</span>
-          <p className="leading-snug">
-            <strong>เปิดผ่านลิงก์ LINE:</strong> สามารถกดแท็บ <strong>&quot;แจ้งลาซ้อม&quot;</strong> จากที่บ้านได้ทันที (สำหรับการเช็คชื่อเข้าซ้อม ต้องสแกน QR ริมสนามจริง)
+      {!pitchVerifiedState && (
+        <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-950 text-xs space-y-1.5">
+          <div className="flex items-center gap-2 font-bold text-amber-900">
+            <span className="text-base">📱</span>
+            <span>เปิดผ่านลิงก์ LINE (โหมดแจ้งลาซ้อมจากที่บ้าน)</span>
+          </div>
+          <p className="leading-relaxed text-amber-800">
+            ท่านสามารถค้นหาชื่อและ <strong>&quot;แจ้งลาซ้อม&quot;</strong> จากที่บ้านได้ทันที • สำหรับการเช็คชื่อเข้าซ้อม กรุณาสแกน QR Code บนจอโค้ชหรือป้ายริมสนาม
           </p>
         </div>
       )}
@@ -426,8 +446,8 @@ export default function AthleteCheckInView({
               : 'text-zinc-600 hover:text-zinc-900'
           }`}
         >
-          <span>✓</span>
-          <span>เช็คชื่อเข้าซ้อม (มา)</span>
+          <span>{pitchVerifiedState ? '✓' : '🔒'}</span>
+          <span>เช็คชื่อเข้าซ้อม (มา){!pitchVerifiedState ? ' [สแกนริมสนาม]' : ''}</span>
         </button>
 
         <button
@@ -443,6 +463,15 @@ export default function AthleteCheckInView({
           <span>แจ้งลาซ้อม (ลา)</span>
         </button>
       </div>
+
+      {activeTab === 'PRESENT' && !pitchVerifiedState && (
+        <div className="mt-3 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2.5 animate-in fade-in duration-150">
+          <span className="text-lg">🔒</span>
+          <p className="leading-snug">
+            <strong>ต้องสแกน QR Code ริมสนาม:</strong> ท่านกำลังเปิดจากลิงก์ที่ไม่มีการยืนยันพิกัดสนาม หากอยู่ที่สนามจริง กรุณาสแกน QR บนจอโค้ชหรือป้ายริมสนามอีกครั้ง (หากไม่ได้มาสนาม กรุณาแตะแท็บ <strong>&quot;แจ้งลาซ้อม&quot;</strong>)
+          </p>
+        </div>
+      )}
 
       {/* Search Input */}
       <div className="mt-4">

@@ -24,21 +24,23 @@ export default function QrCheckInModal({
 }: QrCheckInModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
-  const [copied, setCopied] = useState(false);
-  const [checkInUrl, setCheckInUrl] = useState('');
+  const [copiedType, setCopiedType] = useState<'pitch' | 'leave' | null>(null);
+  const [pitchUrl, setPitchUrl] = useState('');
+  const [leaveUrl, setLeaveUrl] = useState('');
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setCheckInUrl(`${window.location.origin}/checkin/${sessionId}`);
+      setPitchUrl(`${window.location.origin}/checkin/${sessionId}?pitch=true`);
+      setLeaveUrl(`${window.location.origin}/checkin/${sessionId}`);
     }
   }, [sessionId]);
 
-  const handleCopyLink = () => {
-    if (!checkInUrl) return;
-    navigator.clipboard.writeText(checkInUrl);
-    setCopied(true);
+  const handleCopy = (url: string, type: 'pitch' | 'leave') => {
+    if (!url) return;
+    navigator.clipboard.writeText(url);
+    setCopiedType(type);
     setTimeout(() => {
-      setCopied(false);
+      setCopiedType(null);
     }, 3000);
   };
 
@@ -59,18 +61,18 @@ export default function QrCheckInModal({
       </button>
 
       {isOpen && (
-        <div className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm ${
+        <div className={`fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm print:p-0 print:bg-white print:static ${
           isFullscreen ? 'p-0' : ''
         }`}>
           <div
-            className={`bg-white rounded-3xl w-full shadow-2xl border border-zinc-200 overflow-hidden flex flex-col transition-all ${
+            className={`bg-white rounded-3xl w-full shadow-2xl border border-zinc-200 overflow-hidden flex flex-col transition-all print:max-w-none print:shadow-none print:border-none print:p-8 print:max-h-none ${
               isFullscreen
                 ? 'h-full max-w-none rounded-none bg-[#0F1115] text-white'
                 : 'max-w-lg p-6 max-h-[95vh] overflow-y-auto'
             }`}
           >
-            {/* Header */}
-            <div className={`flex items-center justify-between pb-4 border-b ${
+            {/* Header (Hidden in print) */}
+            <div className={`flex items-center justify-between pb-4 border-b print:hidden ${
               isFullscreen ? 'p-6 border-zinc-800' : 'border-zinc-100'
             }`}>
               <div className="flex items-center gap-2">
@@ -121,12 +123,18 @@ export default function QrCheckInModal({
             <div className={`flex flex-col items-center justify-center py-6 text-center ${
               isFullscreen ? 'flex-1 p-8' : ''
             }`}>
+              {/* Pitch Verified Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-emerald-600 text-[11px] font-black uppercase tracking-wider mb-3">
+                <span>🛡️</span>
+                <span>PITCH VERIFIED • สแกนเข้าซ้อมทันที</span>
+              </div>
+
               {/* QR Code Container */}
-              <div className="p-4 bg-white rounded-3xl shadow-lg border border-zinc-200 inline-block">
-                {checkInUrl && (
+              <div className="p-4 bg-white rounded-3xl shadow-lg border-2 border-zinc-900 inline-block">
+                {pitchUrl && (
                   <QrCodeSvg
-                    value={checkInUrl}
-                    size={isFullscreen ? 320 : 220}
+                    value={pitchUrl}
+                    size={isFullscreen ? 320 : 230}
                   />
                 )}
               </div>
@@ -139,11 +147,11 @@ export default function QrCheckInModal({
               <p className={`text-[11px] mt-0.5 ${
                 isFullscreen ? 'text-zinc-400' : 'text-zinc-500'
               }`}>
-                ไม่ต้องลงชื่อเข้าใช้ • สามารถเลือกเช็คชื่อเข้าซ้อม หรือแจ้งลาซ้อมได้ทันที
+                ยืนยันการอยู่สนามจริงอัตโนมัติ • ไม่ต้องลงชื่อเข้าใช้
               </p>
 
               {/* Headcount Live Counter Strip */}
-              <div className="mt-5 w-full max-w-sm grid grid-cols-3 gap-2 text-center">
+              <div className="mt-5 w-full max-w-sm grid grid-cols-3 gap-2 text-center print:hidden">
                 <div className={`p-2.5 rounded-2xl border ${
                   isFullscreen
                     ? 'bg-zinc-900 border-zinc-800 text-zinc-100'
@@ -162,35 +170,49 @@ export default function QrCheckInModal({
                 </div>
               </div>
 
-              {/* URL & Copy Bar */}
-              <div className="mt-5 w-full max-w-md flex items-center gap-2">
-                <input
-                  type="text"
-                  readOnly
-                  value={checkInUrl}
-                  className={`flex-1 px-3 py-2 text-xs font-mono rounded-xl border truncate ${
-                    isFullscreen
-                      ? 'bg-zinc-900 border-zinc-800 text-zinc-300'
-                      : 'bg-zinc-50 border-zinc-200 text-zinc-600'
-                  }`}
-                />
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[38px] ${
-                    copied
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-zinc-800 hover:bg-zinc-700 text-white'
-                  }`}
-                >
-                  <span>{copied ? '✓' : '📋'}</span>
-                  <span>{copied ? 'คัดลอกแล้ว!' : 'คัดลอกส่ง LINE'}</span>
-                </button>
+              {/* URL Copy Actions (Hidden in Print) */}
+              <div className="mt-5 w-full max-w-md space-y-2 print:hidden">
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    readOnly
+                    value={pitchUrl}
+                    className={`flex-1 px-3 py-2 text-xs font-mono rounded-xl border truncate ${
+                      isFullscreen
+                        ? 'bg-zinc-900 border-zinc-800 text-zinc-300'
+                        : 'bg-zinc-50 border-zinc-200 text-zinc-600'
+                    }`}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(pitchUrl, 'pitch')}
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shrink-0 cursor-pointer min-h-[38px] ${
+                      copiedType === 'pitch'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-emerald-700 hover:bg-emerald-600 text-white'
+                    }`}
+                    title="คัดลอกลิงก์ที่มีสิทธิ์เข้าซ้อมทันที"
+                  >
+                    <span>{copiedType === 'pitch' ? '✓' : '⚡'}</span>
+                    <span>{copiedType === 'pitch' ? 'คัดลอกแล้ว!' : 'คัดลอกลิงก์เข้าซ้อม'}</span>
+                  </button>
+                </div>
+
+                <div className="flex items-center justify-between text-left px-1">
+                  <button
+                    type="button"
+                    onClick={() => handleCopy(leaveUrl, 'leave')}
+                    className="text-[11px] text-zinc-500 hover:text-zinc-800 underline transition cursor-pointer"
+                    title="คัดลอกลิงก์สำหรับส่งให้นักกีฬาที่บ้านเพื่อแจ้งลาซ้อมเท่านั้น"
+                  >
+                    {copiedType === 'leave' ? '✓ คัดลอกลิงก์แจ้งลาเรียบร้อย!' : '📝 คัดลอกลิงก์ส่งกลุ่ม LINE (สำหรับแจ้งลาจากที่บ้าน)'}
+                  </button>
+                </div>
               </div>
 
-              {/* Print Button (Only in window mode) */}
+              {/* Print Button (Only in window mode, hidden in print) */}
               {!isFullscreen && (
-                <div className="mt-4 pt-4 border-t border-zinc-100 w-full flex items-center justify-between gap-3">
+                <div className="mt-4 pt-4 border-t border-zinc-100 w-full flex items-center justify-between gap-3 print:hidden">
                   <button
                     type="button"
                     onClick={handlePrint}

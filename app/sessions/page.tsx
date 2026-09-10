@@ -13,6 +13,7 @@ import SessionsList from './SessionsList';
 import { QuickSessionForm } from './QuickSessionForm';
 import RecurringScheduleModal from './RecurringScheduleModal';
 import PermanentQrModal from './PermanentQrModal';
+import { getBangkokDateTime } from '../../src/server/helpers/timezone';
 
 export const dynamic = 'force-dynamic';
 
@@ -24,8 +25,7 @@ export default async function SessionsPage() {
 
   const sessions = await sessionRepo.findByDateRange(teamId);
   const recurringSchedule = await getRecurringScheduleAction(teamId);
-  const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = getBangkokDateTime().dateStr;
 
   // ดึงสรุปการเช็คชื่อของแต่ละรอบ
   const sessionsWithStats = await Promise.all(
