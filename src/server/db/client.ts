@@ -1,15 +1,17 @@
 import Database from 'better-sqlite3';
-import { drizzle } from 'drizzle-orm/better-sqlite3';
+import { drizzle as drizzleBetterSqlite } from 'drizzle-orm/better-sqlite3';
+import { createClient } from '@libsql/client';
+import { drizzle as drizzleLibsql } from 'drizzle-orm/libsql';
 import * as schema from './schema';
 import path from 'path';
 import fs from 'fs';
 
 function resolveDbPath(): string {
-  if (process.env.DATABASE_URL) {
-    return process.env.DATABASE_URL;
-  }
   if (process.env.DB_PATH) {
     return process.env.DB_PATH;
+  }
+  if (process.env.DATABASE_URL && !process.env.DATABASE_URL.startsWith('libsql:') && !process.env.DATABASE_URL.startsWith('https:')) {
+    return process.env.DATABASE_URL;
   }
   // Render persistent disk standard mount directories (/var/data or /data)
   if (fs.existsSync('/var/data')) {
@@ -39,10 +41,97 @@ function resolveDbPath(): string {
   return path.join(process.cwd(), 'sqlite.db');
 }
 
-const dbPath = resolveDbPath();
+const isLibsql = Boolean(
+  process.env.TURSO_DATABASE_URL ||
+    (process.env.DATABASE_URL &&
+      (process.env.DATABASE_URL.startsWith('libsql:') || process.env.DATABASE_URL.startsWith('https:')))
+);
 
 export function createDbConnection(customPath?: string) {
-  const sqlite = new Database(customPath || dbPath);
+  if (isLibsql && !customPath) {
+    const url = process.env.TURSO_DATABASE_URL || process.env.DATABASE_URL!;
+    const authToken = process.env.TURSO_AUTH_TOKEN || process.env.DATABASE_AUTH_TOKEN;
+    const client = createClient({ url, authToken });
+
+    // Ensure all tables exist in the remote database on first boot
+    client
+      .executeMultiple(`
+        CREATE TABLE IF NOT EXISTS teams (
+          id TEXT PRIMARY KEY,
+          name TEXT NOT NULL,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS users (
+          id TEXT PRIMARY KEY,
+          team_id TEXT REFERENCES teams(id) ON DELETE CASCADE,
+          name TEXT NOT NULL,
+          username TEXT NOT NULL UNIQUE,
+          password_hash TEXT NOT NULL,
+          role TEXT NOT NULL DEFAULT 'USER',
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS athletes (
+          id TEXT PRIMARY KEY,
+          team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+          athlete_code TEXT NOT NULL,
+          name TEXT NOT NULL,
+          phone TEXT,
+          start_date TEXT NOT NULL,
+          status TEXT NOT NULL DEFAULT 'ACTIVE',
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS training_sessions (
+          id TEXT PRIMARY KEY,
+          team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+          title TEXT NOT NULL,
+          date TEXT NOT NULL,
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          created_by TEXT REFERENCES users(id),
+          is_closed INTEGER NOT NULL DEFAULT 0,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS recurring_schedules (
+          id TEXT PRIMARY KEY,
+          team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+          days_of_week TEXT NOT NULL,
+          start_time TEXT NOT NULL,
+          end_time TEXT NOT NULL,
+          title TEXT NOT NULL,
+          is_active INTEGER NOT NULL DEFAULT 1,
+          created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+        );
+        CREATE TABLE IF NOT EXISTS attendances (
+          id TEXT PRIMARY KEY,
+          session_id TEXT NOT NULL REFERENCES training_sessions(id) ON DELETE CASCADE,
+          athlete_id TEXT NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+          status TEXT NOT NULL,
+          checked_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          checked_by TEXT REFERENCES users(id),
+          notes TEXT
+        );
+        CREATE TABLE IF NOT EXISTS attendance_logs (
+          id TEXT PRIMARY KEY,
+          attendance_id TEXT NOT NULL REFERENCES attendances(id) ON DELETE CASCADE,
+          session_id TEXT NOT NULL REFERENCES training_sessions(id) ON DELETE CASCADE,
+          athlete_id TEXT NOT NULL REFERENCES athletes(id) ON DELETE CASCADE,
+          previous_status TEXT NOT NULL,
+          new_status TEXT NOT NULL,
+          changed_by TEXT REFERENCES users(id),
+          changed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+          reason TEXT
+        );
+      `)
+      .catch((err) => {
+        console.error('Remote DB table initialization check:', err);
+      });
+
+    return drizzleLibsql(client, { schema }) as any;
+  }
+
+  const dbPath = customPath || resolveDbPath();
+  const sqlite = new Database(dbPath, { timeout: 10000 });
   sqlite.pragma('journal_mode = WAL');
   sqlite.pragma('synchronous = NORMAL');
   sqlite.pragma('foreign_keys = ON');
@@ -70,7 +159,7 @@ export function createDbConnection(customPath?: string) {
     `);
   } catch {}
 
-  return drizzle(sqlite, { schema });
+  return drizzleBetterSqlite(sqlite, { schema });
 }
 
 export const db = createDbConnection();
