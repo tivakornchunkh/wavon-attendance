@@ -85,7 +85,7 @@ export function LoginForm({ loginAction }: LoginFormProps) {
 
       {/* Clear, Informative Error Alert Box */}
       {errorMessage && (
-        <div className="mb-5 p-4 rounded-2xl bg-rose-50/90 border-2 border-rose-300 text-rose-900 shadow-sm animate-toast space-y-2">
+        <div className="w-full mb-5 p-4 rounded-2xl bg-rose-50/90 border-2 border-rose-300 text-rose-900 shadow-sm animate-alert space-y-2">
           <div className="flex items-start gap-2.5">
             <span className="text-lg shrink-0 leading-none mt-0.5">⚠️</span>
             <div className="space-y-1 text-xs">
@@ -99,7 +99,7 @@ export function LoginForm({ loginAction }: LoginFormProps) {
               )}
               {errorField === 'password' && (
                 <p className="text-[11px] text-rose-700 font-medium">
-                  💡 ตรวจสอบว่าปุ่ม <strong>Caps Lock</strong> เปิดค้างอยู่หรือไม่ หรือกดดูบัญชีทดสอบเริ่มต้นด้านล่าง
+                  💡 ตรวจสอบว่าปุ่ม <strong>Caps Lock</strong> เปิดค้างอยู่หรือไม่ แล้วลองใหม่อีกครั้ง
                 </p>
               )}
             </div>

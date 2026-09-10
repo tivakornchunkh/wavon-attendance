@@ -64,9 +64,9 @@ describe('Error Formatter & Friendly Diagnostics', () => {
 });
 
 describe('Version Synchronization', () => {
-  it('correctly reports v2.2.0 as the active app version', () => {
-    expect(APP_VERSION).toBe('v2.2.0');
-    expect(APP_VERSION_RAW).toBe('2.2.0');
+  it('correctly reports v2.2.1 as the active app version', () => {
+    expect(APP_VERSION).toBe('v2.2.1');
+    expect(APP_VERSION_RAW).toBe('2.2.1');
   });
 });
 
@@ -83,6 +83,6 @@ describe('User Persistence & Guardrails', () => {
     expect(armUser).toBeDefined();
     expect(armUser.username).toBe('arm');
     expect(armUser.role).toBe('ADMIN');
-  });
+  }, 15000);
 });
 

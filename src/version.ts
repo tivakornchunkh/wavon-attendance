@@ -4,7 +4,7 @@
  * - Minor update (x.y.0): New major features (e.g. anti-cheat, recurring schedule, auto-absent)
  * - Patch update (x.y.z): Bug fixes, UI polishes, and hotfixes
  */
-export const APP_VERSION = 'v2.2.0';
-export const APP_VERSION_RAW = '2.2.0';
-export const APP_RELEASE_NAME = 'Athlete Management, Real-Time Sync & Pro Training Pass';
+export const APP_VERSION = 'v2.2.1';
+export const APP_VERSION_RAW = '2.2.1';
+export const APP_RELEASE_NAME = 'UI Alignment & Mobile Polish';
 
