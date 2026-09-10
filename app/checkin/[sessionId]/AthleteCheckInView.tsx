@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useTransition } from 'react';
 import { selfCheckInAction } from '../../actions/session.actions';
 
 interface Athlete {
@@ -100,6 +100,9 @@ export default function AthleteCheckInView({
   const rememberedAthlete = rememberedAthleteId
     ? athletes.find((a) => a.id === rememberedAthleteId)
     : null;
+  const isRememberedCheckedIn = rememberedAthlete
+    ? attendances[rememberedAthlete.id]?.status === 'PRESENT'
+    : false;
 
   const quickLeaveOptions = ['ลาป่วย', 'ติดเรียน / ติดสอบ', 'ติดธุระครอบครัว', 'บาดเจ็บจากการแข่งขัน', 'อื่นๆ'];
 
@@ -110,21 +113,43 @@ export default function AthleteCheckInView({
     }, 4500);
   };
 
-  const filteredAthletes = athletes.filter((a) => {
-    const q = searchQuery.toLowerCase().trim();
-    if (!q) return true;
-    return (
-      a.name.toLowerCase().includes(q) ||
-      a.athleteCode.toLowerCase().includes(q) ||
-      (a.phone && a.phone.includes(q))
-    );
-  });
-
   const presentCount = Object.values(attendances).filter((a) => a.status === 'PRESENT').length;
   const leaveCount = Object.values(attendances).filter((a) => a.status === 'LEAVE').length;
+  const uncheckedCount = athletes.length - (presentCount + leaveCount);
 
   // 9B: List of teammates who have checked in
   const presentAthletes = athletes.filter((a) => attendances[a.id]?.status === 'PRESENT');
+
+  // UX Optimization (Decision 1): Group unchecked athletes first, already checked athletes at bottom
+  const { uncheckedList, checkedList, totalFiltered } = useMemo(() => {
+    const q = searchQuery.toLowerCase().trim();
+    const filtered = athletes.filter((a) => {
+      if (!q) return true;
+      return (
+        a.name.toLowerCase().includes(q) ||
+        a.athleteCode.toLowerCase().includes(q) ||
+        (a.phone && a.phone.includes(q))
+      );
+    });
+
+    const unchecked: Athlete[] = [];
+    const checked: Athlete[] = [];
+
+    for (const a of filtered) {
+      const att = attendances[a.id];
+      if (att && (att.status === 'PRESENT' || att.status === 'LEAVE')) {
+        checked.push(a);
+      } else {
+        unchecked.push(a);
+      }
+    }
+
+    return {
+      uncheckedList: unchecked,
+      checkedList: checked,
+      totalFiltered: filtered.length,
+    };
+  }, [athletes, searchQuery, attendances]);
 
   const handleConfirmCheckIn = (targetAthlete?: Athlete) => {
     const athleteToSubmit = targetAthlete || selectedAthlete;
@@ -217,7 +242,7 @@ export default function AthleteCheckInView({
   }
 
   return (
-    <div className="w-full max-w-lg mx-auto py-4 sm:py-8 px-3.5 sm:px-4">
+    <div className="w-full max-w-lg mx-auto py-3 sm:py-6 px-3.5 sm:px-4">
       {/* Toast Notification */}
       {toastMessage && (
         <div
@@ -238,13 +263,13 @@ export default function AthleteCheckInView({
 
       {/* 4A: Notice if opened via LINE without Pitch Verification */}
       {!pitchVerifiedState && (
-        <div className="mb-4 p-4 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-950 text-xs space-y-1.5">
+        <div className="mb-3.5 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-950 text-xs space-y-1">
           <div className="flex items-center gap-2 font-bold text-amber-900">
             <span className="text-base">📱</span>
             <span>เปิดผ่านลิงก์ LINE (โหมดแจ้งลาซ้อมจากที่บ้าน)</span>
           </div>
-          <p className="leading-relaxed text-amber-800">
-            ท่านสามารถค้นหาชื่อและ <strong>&quot;แจ้งลาซ้อม&quot;</strong> จากที่บ้านได้ทันที • สำหรับการเช็คชื่อเข้าซ้อม กรุณาสแกน QR Code บนจอโค้ชหรือป้ายริมสนาม
+          <p className="leading-relaxed text-amber-800 text-[11px]">
+            ท่านสามารถค้นหาชื่อและ <strong>&quot;แจ้งลาซ้อม&quot;</strong> ได้ทันที • สำหรับการเช็คชื่อเข้าซ้อม กรุณาสแกน QR บนจอโค้ชหรือป้ายริมสนาม
           </p>
         </div>
       )}
@@ -268,39 +293,31 @@ export default function AthleteCheckInView({
               </span>
             </div>
 
-            {/* Club & Title */}
-            <div className="mt-4">
-              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-                {team.name}
-              </span>
-              <h3 className="text-lg font-black text-white mt-1.5">
-                {session.title}
-              </h3>
-            </div>
-
-            {/* Athlete Badge */}
-            <div className="my-5 p-4 bg-zinc-900/90 rounded-2xl border border-zinc-800 flex items-center gap-3.5">
-              <div className="w-12 h-12 rounded-xl bg-emerald-500 text-zinc-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md">
-                {digitalPassData.athleteCode}
+            {/* Pass Body */}
+            <div className="py-6 space-y-3 relative z-10">
+              <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500 flex items-center justify-center mx-auto text-3xl shadow-lg shadow-emerald-500/20">
+                ⚽
               </div>
-              <div className="text-left overflow-hidden">
-                <p className="text-base font-black text-white truncate">
-                  {digitalPassData.athleteName}
-                </p>
-                <p className="text-[11px] text-zinc-400">
-                  รหัส: {digitalPassData.athleteCode}
-                </p>
-              </div>
-            </div>
 
-            {/* 7B: Early Bird Rank Badge */}
-            <div className="py-2.5 px-3 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5">
-              <span>⚡</span>
-              <span>คุณมาถึงสนามเป็นคนที่ #{digitalPassData.rank} ของทีมวันนี้!</span>
+              {/* Early Bird Rank Badge */}
+              <div className="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-black">
+                <span>⚡</span>
+                <span>มาถึงสนามเป็นคนที่ #{digitalPassData.rank}</span>
+              </div>
+
+              <h2 className="text-2xl font-black tracking-tight text-white mt-1">
+                {digitalPassData.athleteName}
+              </h2>
+              <p className="text-xs font-mono text-zinc-400">
+                รหัสประจำตัว: <strong className="text-emerald-400">{digitalPassData.athleteCode}</strong>
+              </p>
+              <p className="text-[11px] text-zinc-500">
+                สโมสร {team.name} • {session.title}
+              </p>
             </div>
 
             {/* Stamp */}
-            <div className="mt-4 inline-block px-4 py-1.5 rounded-full border-2 border-emerald-400 text-emerald-400 text-xs font-black tracking-widest uppercase rotate-[-3deg] shadow-lg shadow-emerald-500/20">
+            <div className="mt-2 inline-block px-4 py-1.5 rounded-full border-2 border-emerald-400 text-emerald-400 text-xs font-black tracking-widest uppercase rotate-[-3deg] shadow-lg shadow-emerald-500/20">
               ✓ VERIFIED PRESENT
             </div>
 
@@ -309,7 +326,7 @@ export default function AthleteCheckInView({
               <button
                 type="button"
                 onClick={() => setDigitalPassData(null)}
-                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md"
+                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md active:scale-95"
               >
                 เสร็จสิ้น / ปิดหน้าต่าง
               </button>
@@ -318,63 +335,64 @@ export default function AthleteCheckInView({
         </div>
       )}
 
-      {/* Session Details Card */}
-      <div className="bg-[#0F1115] text-white rounded-3xl p-5 sm:p-6 shadow-xl border border-zinc-800">
-        <div className="flex items-center justify-between gap-2">
-          <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-            🏢 {team.name}
-          </span>
-          <span className="text-[11px] text-zinc-400 font-medium">
-            สแกนเช็คชื่อนักกีฬา
+      {/* ======================================================= */}
+      {/* 1. COMPACT SPORTY SESSION HEADER (UX Decision 2)         */}
+      {/* ======================================================= */}
+      <div className="bg-[#0F1115] text-white rounded-2xl p-4 sm:p-5 shadow-lg border border-zinc-800">
+        <div className="flex items-center justify-between gap-2 flex-wrap">
+          <div className="flex items-center gap-2">
+            <span className="px-2.5 py-0.5 rounded-md text-[10px] font-black uppercase tracking-wider bg-zinc-800 text-zinc-300 border border-zinc-700">
+              🏢 {team.name}
+            </span>
+            <span className="text-[11px] text-zinc-400 flex items-center gap-1 font-medium">
+              <span>⏰</span>
+              <span>{session.startTime} - {session.endTime} น.</span>
+            </span>
+          </div>
+
+          <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider flex items-center gap-1 ${
+            pitchVerifiedState
+              ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+              : 'bg-amber-500/20 text-amber-400 border border-amber-500/30'
+          }`}>
+            <span>{pitchVerifiedState ? '🛡️' : '📱'}</span>
+            <span>{pitchVerifiedState ? 'PITCH VERIFIED' : 'LINE LINK'}</span>
           </span>
         </div>
 
-        <h1 className="mt-3 text-xl sm:text-2xl font-black text-white tracking-tight">
+        <h1 className="mt-2 text-base sm:text-lg font-black text-white tracking-tight truncate">
           {session.title}
         </h1>
 
-        <div className="mt-2.5 flex items-center gap-3 text-xs text-zinc-300 flex-wrap">
-          <span className="flex items-center gap-1.5">
-            <span>📅</span>
-            <span>{session.date}</span>
-          </span>
-          <span className="text-zinc-600">•</span>
-          <span className="flex items-center gap-1.5">
-            <span>⏰</span>
-            <span>{session.startTime} - {session.endTime} น.</span>
-          </span>
-        </div>
-
-        {/* Live Counters */}
-        <div className="mt-4 pt-4 border-t border-zinc-800/80 grid grid-cols-2 gap-2 text-center">
-          <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-2.5">
-            <p className="text-[10px] uppercase font-bold text-emerald-400 tracking-wider">
-              เช็คชื่อแล้ว (มาซ้อม)
-            </p>
-            <p className="text-xl font-black text-emerald-400 mt-0.5">{presentCount} คน</p>
+        {/* Live Counters Strip: Compact single line row */}
+        <div className="mt-3 pt-3 border-t border-zinc-800/80 grid grid-cols-3 gap-2 text-center text-xs font-bold">
+          <div className="bg-emerald-950/40 border border-emerald-800/40 rounded-xl py-1.5 px-2 text-emerald-400">
+            <span className="text-[10px] opacity-75 block font-semibold">มาซ้อม</span>
+            <span className="text-sm font-black">{presentCount} คน</span>
           </div>
-          <div className="bg-zinc-900/90 border border-zinc-800 rounded-2xl p-2.5">
-            <p className="text-[10px] uppercase font-bold text-amber-400 tracking-wider">
-              แจ้งลาซ้อม (ลา)
-            </p>
-            <p className="text-xl font-black text-amber-400 mt-0.5">{leaveCount} คน</p>
+          <div className="bg-amber-950/40 border border-amber-800/40 rounded-xl py-1.5 px-2 text-amber-400">
+            <span className="text-[10px] opacity-75 block font-semibold">แจ้งลา</span>
+            <span className="text-sm font-black">{leaveCount} คน</span>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl py-1.5 px-2 text-zinc-400">
+            <span className="text-[10px] opacity-75 block font-semibold">ยังไม่เช็ค</span>
+            <span className="text-sm font-black text-zinc-200">{uncheckedCount} คน</span>
           </div>
         </div>
 
-        {/* 9B: Teammates on Pitch Strip */}
+        {/* 9B: Teammates on Pitch Compact Chips */}
         {presentAthletes.length > 0 && (
-          <div className="mt-4 pt-3 border-t border-zinc-800/80">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1">
-              <span>👥</span>
-              <span>เพื่อนร่วมทีมที่ถึงสนามแล้ว ({presentAthletes.length} คน):</span>
-            </p>
-            <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto">
+          <div className="mt-2.5 pt-2 border-t border-zinc-800/60 flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
+            <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider shrink-0 flex items-center gap-1">
+              <span>👥 ถึงสนาม:</span>
+            </span>
+            <div className="flex items-center gap-1.5 shrink-0">
               {presentAthletes.map((pa) => (
                 <span
                   key={pa.id}
-                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-zinc-900 text-emerald-300 border border-zinc-800 flex items-center gap-1"
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-zinc-900 text-emerald-300 border border-zinc-800 flex items-center gap-1 shrink-0"
                 >
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shrink-0" />
                   <span>{pa.name}</span>
                 </span>
               ))}
@@ -383,51 +401,73 @@ export default function AthleteCheckInView({
         )}
       </div>
 
-      {/* 10B: Remembered Athlete 1-Click Quick Check-in Banner */}
+      {/* ======================================================= */}
+      {/* 2. REMEMBERED ATHLETE 1-CLICK QUICK CHECK-IN BANNER      */}
+      {/* ======================================================= */}
       {rememberedAthlete && !dismissRemembered && (
-        <div className="mt-4 p-4 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/40 shadow-md">
+        <div className="mt-3.5 p-3.5 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/40 shadow-sm">
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2.5">
-              <span className="text-2xl">⚡</span>
+              <span className="text-xl">⚡</span>
               <div>
                 <p className="text-xs font-black text-emerald-950">
-                  ยินดีต้อนรับกลับมา! {rememberedAthlete.name} ({rememberedAthlete.athleteCode})
+                  {rememberedAthlete.name} ({rememberedAthlete.athleteCode})
                 </p>
                 <p className="text-[10px] text-emerald-700">
-                  เครื่องนี้ถูกจดจำไว้ แตะปุ่มด้านล่างเพื่อเช็คชื่อทันทีใน 1 วินาที
+                  {isRememberedCheckedIn
+                    ? '✓ เช็คชื่อเข้าซ้อมเรียบร้อยแล้วในรอบนี้'
+                    : 'เครื่องนี้ถูกจดจำไว้ แตะปุ่มด้านล่างเพื่อเช็คชื่อทันที'}
                 </p>
               </div>
             </div>
             <button
               type="button"
               onClick={() => setDismissRemembered(true)}
-              className="text-[11px] text-zinc-400 hover:text-zinc-700 p-1"
+              className="text-[11px] text-zinc-400 hover:text-zinc-700 p-1 cursor-pointer"
               title="สลับชื่อ"
             >
               ✕
             </button>
           </div>
 
-          <div className="mt-3 flex items-center gap-2">
-            <button
-              type="button"
-              onClick={() => handleConfirmCheckIn(rememberedAthlete)}
-              disabled={isPending}
-              className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
-            >
-              {isPending ? (
-                <span>กำลังบันทึก...</span>
-              ) : (
-                <>
-                  <span>✓</span>
-                  <span>1-Click เช็คชื่อเข้าซ้อมทันที</span>
-                </>
-              )}
-            </button>
+          <div className="mt-2.5 flex items-center gap-2">
+            {isRememberedCheckedIn ? (
+              <button
+                type="button"
+                onClick={() => {
+                  setDigitalPassData({
+                    athleteName: rememberedAthlete.name,
+                    athleteCode: rememberedAthlete.athleteCode,
+                    rank: presentCount,
+                    time: 'เข้าซ้อมแล้ว',
+                  });
+                }}
+                className="flex-1 py-2 px-3 bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-xs rounded-xl transition cursor-pointer shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <span>🎫</span>
+                <span>ดูบัตร Digital Match Pass ของคุณ</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => handleConfirmCheckIn(rememberedAthlete)}
+                disabled={isPending}
+                className="flex-1 py-2.5 px-3.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs rounded-xl transition cursor-pointer shadow-sm flex items-center justify-center gap-1.5"
+              >
+                {isPending ? (
+                  <span>กำลังบันทึก...</span>
+                ) : (
+                  <>
+                    <span>✓</span>
+                    <span>1-Click เช็คชื่อเข้าซ้อมทันที</span>
+                  </>
+                )}
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setDismissRemembered(true)}
-              className="py-2.5 px-3 bg-white text-zinc-600 text-xs font-bold rounded-xl border border-zinc-200 hover:bg-zinc-50"
+              className="py-2 px-3 bg-white text-zinc-600 text-xs font-bold rounded-xl border border-zinc-200 hover:bg-zinc-50 cursor-pointer shrink-0"
             >
               ไม่ใช่ฉัน
             </button>
@@ -435,14 +475,16 @@ export default function AthleteCheckInView({
         </div>
       )}
 
-      {/* Tab Selector: Present vs Leave */}
-      <div className="mt-4 bg-zinc-200/80 p-1.5 rounded-2xl flex items-center gap-1.5">
+      {/* ======================================================= */}
+      {/* 3. TAB SELECTOR: PRESENT VS LEAVE                        */}
+      {/* ======================================================= */}
+      <div className="mt-3.5 bg-zinc-200/80 p-1 rounded-2xl flex items-center gap-1">
         <button
           type="button"
           onClick={() => setActiveTab('PRESENT')}
-          className={`flex-1 py-3 px-3 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 cursor-pointer min-h-[46px] ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px] ${
             activeTab === 'PRESENT'
-              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-700/20'
+              ? 'bg-emerald-600 text-white shadow-sm shadow-emerald-700/20'
               : 'text-zinc-600 hover:text-zinc-900'
           }`}
         >
@@ -453,9 +495,9 @@ export default function AthleteCheckInView({
         <button
           type="button"
           onClick={() => setActiveTab('LEAVE')}
-          className={`flex-1 py-3 px-3 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-2 cursor-pointer min-h-[46px] ${
+          className={`flex-1 py-2.5 px-3 rounded-xl text-xs sm:text-sm font-black transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[44px] ${
             activeTab === 'LEAVE'
-              ? 'bg-amber-600 text-white shadow-md shadow-amber-700/20'
+              ? 'bg-amber-600 text-white shadow-sm shadow-amber-700/20'
               : 'text-zinc-600 hover:text-zinc-900'
           }`}
         >
@@ -465,16 +507,18 @@ export default function AthleteCheckInView({
       </div>
 
       {activeTab === 'PRESENT' && !pitchVerifiedState && (
-        <div className="mt-3 p-3.5 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2.5 animate-in fade-in duration-150">
-          <span className="text-lg">🔒</span>
-          <p className="leading-snug">
-            <strong>ต้องสแกน QR Code ริมสนาม:</strong> ท่านกำลังเปิดจากลิงก์ที่ไม่มีการยืนยันพิกัดสนาม หากอยู่ที่สนามจริง กรุณาสแกน QR บนจอโค้ชหรือป้ายริมสนามอีกครั้ง (หากไม่ได้มาสนาม กรุณาแตะแท็บ <strong>&quot;แจ้งลาซ้อม&quot;</strong>)
+        <div className="mt-2.5 p-3 rounded-2xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2 animate-in fade-in duration-150">
+          <span className="text-base">🔒</span>
+          <p className="leading-snug text-[11px]">
+            <strong>ต้องสแกน QR Code ริมสนาม:</strong> ท่านเปิดจากลิงก์ที่ไม่มีการยืนยันพิกัดสนาม หากอยู่ที่สนามจริง กรุณาสแกน QR บนจอโค้ชหรือป้ายริมสนามอีกครั้ง (หากอยู่บ้าน กรุณาแตะแท็บ <strong>&quot;แจ้งลาซ้อม&quot;</strong>)
           </p>
         </div>
       )}
 
-      {/* Search Input */}
-      <div className="mt-4">
+      {/* ======================================================= */}
+      {/* 4. SEARCH INPUT (Clean Sticky Feel)                     */}
+      {/* ======================================================= */}
+      <div className="mt-3">
         <div className="relative">
           <span className="absolute inset-y-0 left-3.5 flex items-center text-zinc-400 text-sm">
             🔍
@@ -484,7 +528,7 @@ export default function AthleteCheckInView({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="ค้นหาชื่อ หรือรหัสนักกีฬา..."
-            className="w-full pl-10 pr-4 py-3 bg-white border border-zinc-300 rounded-2xl text-xs sm:text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-xs min-h-[48px]"
+            className="w-full pl-10 pr-4 py-2.5 bg-white border border-zinc-300 rounded-xl text-xs sm:text-sm text-zinc-900 placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-900 shadow-2xs min-h-[44px]"
           />
           {searchQuery && (
             <button
@@ -498,95 +542,162 @@ export default function AthleteCheckInView({
         </div>
       </div>
 
-      {/* Athletes List */}
-      <div className="mt-4 space-y-2">
-        <div className="flex items-center justify-between px-1">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500">
-            แตะที่ชื่อของคุณเพื่อ{activeTab === 'PRESENT' ? 'เช็คชื่อ' : 'แจ้งลา'}
-          </p>
-          <span className="text-[11px] text-zinc-400">
-            พบ {filteredAthletes.length} คน
-          </span>
-        </div>
-
-        {filteredAthletes.length === 0 ? (
-          <div className="bg-white rounded-2xl border border-zinc-200 p-8 text-center text-zinc-400">
-            <span className="text-3xl block mb-2">🔍</span>
-            <p className="text-xs font-bold text-zinc-600">ไม่พบรายชื่อนักกีฬา</p>
-            <p className="text-[11px] text-zinc-400 mt-1">
-              ลองพิมพ์คำค้นหาใหม่อีกครั้ง
+      {/* ======================================================= */}
+      {/* 5. ATHLETES ROSTER LIST (UX Decision 1 & 3)             */}
+      {/* ======================================================= */}
+      <div className="mt-3.5 space-y-3">
+        {/* Section 1: Unchecked Athletes (Top Priority) */}
+        <div>
+          <div className="flex items-center justify-between px-1 mb-2">
+            <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-500 flex items-center gap-1">
+              <span>⚡ ยังไม่เช็คชื่อ</span>
+              <span className="px-1.5 py-0.2 rounded-md bg-zinc-200 text-zinc-700 text-[10px]">
+                {uncheckedList.length}
+              </span>
             </p>
+            <span className="text-[10px] text-zinc-400">
+              แตะชื่อเพื่อ{activeTab === 'PRESENT' ? 'เข้าซ้อม' : 'แจ้งลา'}
+            </span>
           </div>
-        ) : (
-          <div className="space-y-2 max-h-[55vh] overflow-y-auto pr-0.5">
-            {filteredAthletes.map((ath) => {
-              const currentAtt = attendances[ath.id];
-              const isPresent = currentAtt?.status === 'PRESENT';
-              const isLeave = currentAtt?.status === 'LEAVE';
 
-              return (
+          {uncheckedList.length === 0 && totalFiltered === 0 ? (
+            <div className="bg-white rounded-2xl border border-zinc-200 p-8 text-center text-zinc-400">
+              <span className="text-3xl block mb-2">🔍</span>
+              <p className="text-xs font-bold text-zinc-600">ไม่พบรายชื่อนักกีฬา</p>
+              <p className="text-[11px] text-zinc-400 mt-1">
+                ลองพิมพ์คำค้นหาใหม่อีกครั้ง
+              </p>
+            </div>
+          ) : uncheckedList.length === 0 ? (
+            <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl text-center text-xs font-bold text-emerald-800">
+              ✓ นักกีฬาทุกคนเช็คชื่อครบเรียบร้อยแล้ว
+            </div>
+          ) : (
+            <div className="space-y-1.5">
+              {uncheckedList.map((ath) => (
                 <button
                   key={ath.id}
                   type="button"
                   onClick={() => setSelectedAthlete(ath)}
-                  className={`w-full text-left p-3.5 sm:p-4 rounded-2xl border transition flex items-center justify-between gap-3 min-h-[56px] cursor-pointer ${
-                    isPresent
-                      ? 'bg-emerald-50/80 border-emerald-300 ring-1 ring-emerald-400/30'
-                      : isLeave
-                      ? 'bg-amber-50/80 border-amber-300 ring-1 ring-amber-400/30'
-                      : 'bg-white border-zinc-200/80 hover:border-zinc-300 active:bg-zinc-50 shadow-xs'
-                  }`}
+                  className="w-full text-left p-3 sm:p-3.5 rounded-xl border border-zinc-200/80 bg-white hover:border-zinc-300 hover:bg-zinc-50 active:bg-zinc-100 transition flex items-center justify-between gap-3 min-h-[50px] cursor-pointer shadow-2xs active:scale-[0.99]"
                 >
-                  <div className="flex items-center gap-3 overflow-hidden">
-                    <div
-                      className={`w-10 h-10 rounded-xl flex items-center justify-center text-xs font-black shrink-0 ${
-                        isPresent
-                          ? 'bg-emerald-600 text-white'
-                          : isLeave
-                          ? 'bg-amber-500 text-white'
-                          : 'bg-zinc-100 text-zinc-800'
-                      }`}
-                    >
+                  <div className="flex items-center gap-2.5 overflow-hidden">
+                    <div className="w-9 h-9 rounded-lg bg-zinc-100 text-zinc-800 flex items-center justify-center text-xs font-black shrink-0 border border-zinc-200">
                       {ath.athleteCode}
                     </div>
 
                     <div className="overflow-hidden">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs sm:text-sm font-black text-zinc-900 truncate">
-                          {ath.name}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-zinc-400 mt-0.5 truncate">
+                      <span className="text-xs sm:text-sm font-black text-zinc-900 truncate block">
+                        {ath.name}
+                      </span>
+                      <p className="text-[10px] text-zinc-400 truncate">
                         รหัส: {ath.athleteCode} {ath.phone ? `• โทร ${ath.phone}` : ''}
                       </p>
                     </div>
                   </div>
 
-                  <div className="shrink-0 text-right">
-                    {isPresent ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-200">
-                        <span>✓</span>
-                        <span>มาซ้อมแล้ว</span>
-                      </span>
-                    ) : isLeave ? (
-                      <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-200">
-                        <span>⚠</span>
-                        <span>แจ้งลาแล้ว</span>
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center gap-1 px-3 py-1 rounded-xl text-[11px] font-bold bg-zinc-900 text-white">
-                        {activeTab === 'PRESENT' ? 'เช็คชื่อ' : 'แจ้งลา'}
-                      </span>
-                    )}
+                  <div className="shrink-0">
+                    <span className={`inline-flex items-center gap-1 px-3 py-1 rounded-lg text-[11px] font-bold ${
+                      activeTab === 'PRESENT'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-amber-600 text-white'
+                    }`}>
+                      {activeTab === 'PRESENT' ? '✓ เช็คชื่อ' : '📝 แจ้งลา'}
+                    </span>
                   </div>
                 </button>
-              );
-            })}
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Section 2: Already Checked-in Athletes (Bottom - UX Decision 3: Disabled / Locked) */}
+        {checkedList.length > 0 && (
+          <div className="pt-2">
+            <div className="flex items-center justify-between px-1 mb-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-zinc-400 flex items-center gap-1">
+                <span>✓ เช็คชื่อแล้ว</span>
+                <span className="px-1.5 py-0.2 rounded-md bg-zinc-100 text-zinc-500 text-[10px]">
+                  {checkedList.length}
+                </span>
+              </p>
+              <span className="text-[10px] text-zinc-400">
+                {activeTab === 'PRESENT' ? 'ล็อคป้องกันกดซ้ำ' : ''}
+              </span>
+            </div>
+
+            <div className="space-y-1.5 opacity-90">
+              {checkedList.map((ath) => {
+                const currentAtt = attendances[ath.id];
+                const isPresent = currentAtt?.status === 'PRESENT';
+                const isLeave = currentAtt?.status === 'LEAVE';
+
+                // UX Decision 3: If already PRESENT in PRESENT tab, or LEAVE in LEAVE tab -> lock / disable button
+                const isLocked = (isPresent && activeTab === 'PRESENT') || (isLeave && activeTab === 'LEAVE');
+
+                return (
+                  <button
+                    key={ath.id}
+                    type="button"
+                    disabled={isLocked}
+                    onClick={() => {
+                      if (!isLocked) {
+                        setSelectedAthlete(ath);
+                      }
+                    }}
+                    className={`w-full text-left p-3 sm:p-3.5 rounded-xl border transition flex items-center justify-between gap-3 min-h-[50px] ${
+                      isLocked
+                        ? 'cursor-default opacity-85'
+                        : 'cursor-pointer hover:border-zinc-300'
+                    } ${
+                      isPresent
+                        ? 'bg-emerald-50/60 border-emerald-200/80 text-emerald-950'
+                        : 'bg-amber-50/60 border-amber-200/80 text-amber-950'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5 overflow-hidden">
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center text-xs font-black shrink-0 ${
+                        isPresent
+                          ? 'bg-emerald-600 text-white'
+                          : 'bg-amber-500 text-white'
+                      }`}>
+                        {ath.athleteCode}
+                      </div>
+
+                      <div className="overflow-hidden">
+                        <span className="text-xs sm:text-sm font-black text-zinc-900 truncate block">
+                          {ath.name}
+                        </span>
+                        <p className="text-[10px] text-zinc-400 truncate">
+                          {currentAtt?.notes || (isPresent ? 'สแกน QR ริมสนาม' : 'แจ้งลา')}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="shrink-0">
+                      {isPresent ? (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800 border border-emerald-300">
+                          <span>✓</span>
+                          <span>เข้าซ้อมแล้ว</span>
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-black bg-amber-100 text-amber-800 border border-amber-300">
+                          <span>⚠</span>
+                          <span>{activeTab === 'PRESENT' ? 'ลา (แตะเพื่อเข้าซ้อม)' : 'แจ้งลาแล้ว'}</span>
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
 
-      {/* Confirmation Bottom Sheet / Modal */}
+      {/* ======================================================= */}
+      {/* 6. CONFIRMATION BOTTOM SHEET MODAL                       */}
+      {/* ======================================================= */}
       {selectedAthlete && (
         <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/70 backdrop-blur-xs">
           <div className="bg-white rounded-t-3xl sm:rounded-3xl max-w-md w-full p-6 shadow-2xl border border-zinc-200 animate-in slide-in-from-bottom sm:zoom-in-95 duration-150">
@@ -625,19 +736,19 @@ export default function AthleteCheckInView({
 
             {/* Leave Options when in LEAVE tab */}
             {activeTab === 'LEAVE' && (
-              <div className="mt-5 space-y-3">
+              <div className="mt-4 space-y-2.5">
                 <label className="block text-xs font-bold text-zinc-700">
                   เหตุผลการลาซ้อม <span className="text-rose-500">*</span>
                 </label>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   {quickLeaveOptions.map((opt) => (
                     <button
                       key={opt}
                       type="button"
                       onClick={() => setLeaveReason(opt)}
-                      className={`px-3 py-2 rounded-xl text-xs font-bold transition cursor-pointer min-h-[38px] ${
+                      className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer min-h-[36px] ${
                         leaveReason === opt
-                          ? 'bg-amber-500 text-white shadow-sm'
+                          ? 'bg-amber-500 text-white shadow-xs'
                           : 'bg-zinc-100 text-zinc-700 hover:bg-zinc-200'
                       }`}
                     >
@@ -653,19 +764,19 @@ export default function AthleteCheckInView({
                     value={customLeaveReason}
                     onChange={(e) => setCustomLeaveReason(e.target.value)}
                     placeholder="พิมพ์เหตุผลการลาซ้อม เช่น เดินทางไปต่างจังหวัด"
-                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white min-h-[44px]"
+                    className="w-full px-3.5 py-2.5 text-xs sm:text-sm border border-zinc-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white min-h-[42px]"
                   />
                 )}
               </div>
             )}
 
             {/* Confirmation Buttons */}
-            <div className="mt-6 flex items-center gap-3">
+            <div className="mt-5 flex items-center gap-2.5">
               <button
                 type="button"
                 onClick={() => setSelectedAthlete(null)}
                 disabled={isPending}
-                className="flex-1 py-3.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs sm:text-sm font-bold hover:bg-zinc-50 transition cursor-pointer min-h-[48px]"
+                className="flex-1 py-3 rounded-xl border border-zinc-300 text-zinc-700 text-xs sm:text-sm font-bold hover:bg-zinc-50 transition cursor-pointer min-h-[46px]"
               >
                 ยกเลิก
               </button>
@@ -673,10 +784,10 @@ export default function AthleteCheckInView({
                 type="button"
                 onClick={() => handleConfirmCheckIn(selectedAthlete)}
                 disabled={isPending}
-                className={`flex-1 py-3.5 rounded-xl text-xs sm:text-sm font-black text-white transition flex items-center justify-center gap-2 cursor-pointer min-h-[48px] ${
+                className={`flex-1 py-3 rounded-xl text-xs sm:text-sm font-black text-white transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[46px] ${
                   activeTab === 'PRESENT'
-                    ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-lg shadow-emerald-600/30'
-                    : 'bg-amber-600 hover:bg-amber-700 active:bg-amber-800 shadow-lg shadow-amber-600/30'
+                    ? 'bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 shadow-md shadow-emerald-600/30'
+                    : 'bg-amber-600 hover:bg-amber-700 active:bg-amber-800 shadow-md shadow-amber-600/30'
                 }`}
               >
                 {isPending ? (

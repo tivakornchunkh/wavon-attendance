@@ -43,3 +43,4 @@ export function getBangkokDateTime(): {
 
   return { dateStr, timeStr, hours, minutes, currentMinutes, dayOfWeek };
 }
+
