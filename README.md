@@ -30,7 +30,11 @@
 
 ### 5. 👨‍💻 ข้อมูลผู้พัฒนา & เครดิต (Developer Credits & Social Links)
 - ออกแบบและพัฒนาโดย **Tivakorn Chunkh (Arm)**
-- ลิงก์เชื่อมต่อไปยัง GitHub (`tivakornchunkh`), Facebook และ Instagram บน Footer และหน้าต่าง About
+- ช่องทางติดต่อและติดตาม:
+  - 🐙 **GitHub:** [tivakornchunkh](https://github.com/tivakornchunkh)
+  - 📘 **Facebook:** [Arm x tivakorn](https://www.facebook.com/arm.x.tivakorn)
+  - 📷 **Instagram:** [@arm_x_tivakorn](https://www.instagram.com/arm_x_tivakorn)
+- ลิงก์เชื่อมต่อไปยังโซเชียลมีเดียบน Footer และหน้าต่าง Credits
 
 ---
 
