@@ -64,7 +64,7 @@ export default function LoginPage() {
         {/* System Credits & Version Box */}
         <div className="text-center py-2 space-y-1">
           <p className="text-xs font-bold text-zinc-700">
-            WAVON Athlete Attendance System <span className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-200 text-zinc-800 font-mono font-bold">v1.0</span>
+            WAVON Athlete Attendance System <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-bold">v2.0</span>
           </p>
           <p className="text-[11px] text-zinc-400">
             Designed & Engineered for High-Performance Sports Teams & Academies

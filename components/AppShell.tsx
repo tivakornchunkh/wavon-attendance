@@ -410,7 +410,12 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
 
         {/* Bottom Brand Stamp ("Built by WAVON") */}
         <footer className="py-6 px-4 border-t border-zinc-200/80 text-center text-xs text-zinc-400 flex flex-col sm:flex-row items-center justify-center gap-2 bg-white/60">
-          <span className="font-semibold text-zinc-600 tracking-wider">Built by WAVON</span>
+          <div className="flex items-center gap-2">
+            <span className="font-semibold text-zinc-600 tracking-wider">Built by WAVON</span>
+            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-bold">
+              v2.0
+            </span>
+          </div>
           <span className="hidden sm:inline text-zinc-300">•</span>
           <span>ระบบติดตามสถิติและการเช็คชื่อนักกีฬา (Athlete Attendance System)</span>
         </footer>
