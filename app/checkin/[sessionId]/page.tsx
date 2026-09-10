@@ -15,10 +15,16 @@ interface PageProps {
   params: Promise<{
     sessionId: string;
   }>;
+  searchParams: Promise<{
+    pitch?: string;
+  }>;
 }
 
-export default async function CheckInPage({ params }: PageProps) {
+export default async function CheckInPage({ params, searchParams }: PageProps) {
   const { sessionId } = await params;
+  const { pitch } = await searchParams;
+
+  const isPitchVerified = pitch === 'true';
 
   const sessionRepo = new SessionRepository(db);
   const athleteRepo = new AthleteRepository(db);
@@ -74,6 +80,7 @@ export default async function CheckInPage({ params }: PageProps) {
             date: session.date,
             startTime: session.startTime,
             endTime: session.endTime,
+            isClosed: session.isClosed === 1,
           }}
           team={{
             id: team?.id || session.teamId,
@@ -91,6 +98,7 @@ export default async function CheckInPage({ params }: PageProps) {
             status: att.status,
             notes: att.notes,
           }))}
+          isPitchVerified={isPitchVerified}
         />
       </main>
 

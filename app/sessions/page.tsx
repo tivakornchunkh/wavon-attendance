@@ -7,9 +7,12 @@ import { DEFAULT_TEAM_ID } from '../../src/server/helpers/default-team';
 import {
   createPlannedSessionAction,
   createQuickSessionAction,
+  getRecurringScheduleAction,
 } from '../actions/session.actions';
 import SessionsList from './SessionsList';
 import { QuickSessionForm } from './QuickSessionForm';
+import RecurringScheduleModal from './RecurringScheduleModal';
+import PermanentQrModal from './PermanentQrModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,6 +23,7 @@ export default async function SessionsPage() {
   const attendanceRepo = new AttendanceRepository(db);
 
   const sessions = await sessionRepo.findByDateRange(teamId);
+  const recurringSchedule = await getRecurringScheduleAction(teamId);
   const now = new Date();
   const todayStr = now.toISOString().split('T')[0];
 
@@ -61,9 +65,16 @@ export default async function SessionsPage() {
           </p>
         </div>
 
-        <div>
-          <span className="inline-flex items-center px-3.5 py-1.5 rounded-xl text-xs font-bold bg-zinc-900 text-white">
-            ทั้งหมด {sessions.length} รอบการซ้อม
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <PermanentQrModal
+            teamId={teamId}
+            teamName={session.team?.name || 'สโมสร'}
+          />
+          <RecurringScheduleModal
+            initialSchedule={recurringSchedule}
+          />
+          <span className="inline-flex items-center px-3.5 py-2 rounded-xl text-xs font-bold bg-zinc-100 text-zinc-800 border border-zinc-200">
+            ทั้งหมด {sessions.length} รอบ
           </span>
         </div>
       </div>

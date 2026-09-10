@@ -91,6 +91,7 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
           date: session.date,
           startTime: session.startTime,
           endTime: session.endTime,
+          isClosed: session.isClosed === 1,
         }}
       />
 

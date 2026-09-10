@@ -46,9 +46,22 @@ export function createTestDb() {
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
       created_by TEXT NOT NULL REFERENCES users(id),
+      is_closed INTEGER DEFAULT 0 NOT NULL,
       created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
     );
     CREATE INDEX idx_sessions_team_date ON training_sessions(team_id, date);
+
+    CREATE TABLE recurring_schedules (
+      id TEXT PRIMARY KEY,
+      team_id TEXT NOT NULL REFERENCES teams(id) ON DELETE CASCADE,
+      days_of_week TEXT NOT NULL,
+      start_time TEXT NOT NULL,
+      end_time TEXT NOT NULL,
+      title TEXT NOT NULL,
+      is_active INTEGER DEFAULT 1 NOT NULL,
+      created_at TEXT DEFAULT CURRENT_TIMESTAMP NOT NULL
+    );
+    CREATE INDEX idx_recurring_team ON recurring_schedules(team_id);
 
     CREATE TABLE attendances (
       id TEXT PRIMARY KEY,

@@ -1,7 +1,10 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { submitSessionAttendanceAction } from '../../actions/session.actions';
+import {
+  submitSessionAttendanceAction,
+  closeSessionAndMarkAbsentAction,
+} from '../../actions/session.actions';
 import { AttendanceStatus } from '../../../src/core/domain/attendance';
 import { Athlete } from '../../../src/core/domain/athlete';
 import { Toast } from '../../../components/Toast';
@@ -24,6 +27,7 @@ interface CheckInRosterProps {
     date: string;
     startTime: string;
     endTime: string;
+    isClosed?: boolean;
   };
 }
 
@@ -54,6 +58,36 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [savedSuccess, setSavedSuccess] = useState(false);
   const [soundEnabled, setSoundEnabled] = useState(true);
+
+  const [isClosed, setIsClosed] = useState(sessionDetails?.isClosed || false);
+  const [showCloseModal, setShowCloseModal] = useState(false);
+  const [isClosingPending, setIsClosingPending] = useState(false);
+  const [closedToastMsg, setClosedToastMsg] = useState<string | null>(null);
+
+  const handleConfirmCloseSession = async () => {
+    setIsClosingPending(true);
+    try {
+      const res = await closeSessionAndMarkAbsentAction(sessionId);
+      setIsClosed(true);
+      setShowCloseModal(false);
+      const updatedStatuses = { ...statuses };
+      const updatedNotes = { ...notes };
+      for (const item of initialRoster) {
+        if (!updatedStatuses[item.athlete.id]) {
+          updatedStatuses[item.athlete.id] = 'ABSENT';
+          updatedNotes[item.athlete.id] = 'ขาดซ้อม (ระบบตัดยอดอัตโนมัติเมื่อปิดรอบ)';
+        }
+      }
+      setStatuses(updatedStatuses);
+      setNotes(updatedNotes);
+      setClosedToastMsg(`✓ ปิดรอบซ้อมเรียบร้อย: ตัดยอดขาดซ้อมอัตโนมัติ ${res.markedAbsentCount} คน`);
+      setTimeout(() => setClosedToastMsg(null), 5000);
+    } catch (err: unknown) {
+      alert(err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการปิดรอบซ้อม');
+    } finally {
+      setIsClosingPending(false);
+    }
+  };
 
   // ปุ่มลัด: ติ๊กมาทุกคน (Mark All as Present)
   const handleMarkAllPresent = () => {
@@ -140,6 +174,13 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
           onClose={() => setSavedSuccess(false)}
         />
       )}
+      {closedToastMsg && (
+        <Toast
+          message={closedToastMsg}
+          type="success"
+          onClose={() => setClosedToastMsg(null)}
+        />
+      )}
       <input type="hidden" name="sessionId" value={sessionId} />
       {/* ========================================================= */}
       {/* 1. STICKY TOP ACTION TOOLBAR (Optimized for iPad & Mobile) */}
@@ -169,7 +210,7 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
             )}
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-2 w-full sm:w-auto justify-end flex-wrap">
             {/* Tactile Audio Feedback Toggle */}
             <button
               type="button"
@@ -195,6 +236,24 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
               liveLeave={liveLeave}
               totalAthletes={initialRoster.length}
             />
+
+            {/* Close Session & Auto-Absent Button */}
+            {isClosed ? (
+              <span className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-zinc-100 text-zinc-600 border border-zinc-200 flex items-center gap-1.5 min-h-[42px]">
+                <span>🔒</span>
+                <span>ปิดรอบซ้อมแล้ว</span>
+              </span>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowCloseModal(true)}
+                className="px-3.5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white shadow-xs transition cursor-pointer min-h-[42px] flex items-center justify-center gap-1.5 active:scale-95"
+                title="ปิดรอบซ้อมและตัดยอดขาดอัตโนมัติสำหรับคนที่ยังไม่ได้เช็คชื่อ"
+              >
+                <span>🔒</span>
+                <span>ปิดรอบ & ตัดยอดขาด</span>
+              </button>
+            )}
 
             <button
               type="button"
@@ -273,6 +332,28 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
           </div>
         </div>
       </div>
+
+      {/* Session Closed Alert Banner */}
+      {isClosed && (
+        <div className="bg-zinc-900 text-white p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm border border-zinc-800">
+          <div className="flex items-center gap-3">
+            <span className="w-8 h-8 rounded-xl bg-zinc-800 text-amber-400 flex items-center justify-center text-sm font-bold shrink-0">
+              🔒
+            </span>
+            <div>
+              <p className="text-xs sm:text-sm font-bold text-zinc-100">
+                รอบการฝึกซ้อมนี้ปิดรอบและตัดยอดขาดแล้ว
+              </p>
+              <p className="text-[11px] text-zinc-400">
+                ระบบสแกน QR ถูกล็อคเพื่อป้องกันการเช็คชื่อเข้าใหม่ • โค้ชสามารถแก้ไขสถานะย้อนหลังได้ในหน้านี้ (ระบบจะเก็บ Audit Log อัตโนมัติ)
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider bg-zinc-800 text-amber-400 border border-zinc-700 self-start sm:self-auto">
+            LOCKED
+          </span>
+        </div>
+      )}
 
       {/* ========================================================= */}
       {/* 2. ROSTER TABLE (High-Touch Field Target Buttons) */}
@@ -414,6 +495,73 @@ export default function CheckInRoster({ sessionId, initialRoster, sessionDetails
           )}
         </button>
       </div>
+
+      {/* Confirmation Modal: Close Session & Auto-Absent */}
+      {showCloseModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/75 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl border border-zinc-200">
+            <div className="flex items-center gap-3 pb-3 border-b border-zinc-100">
+              <span className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-700 flex items-center justify-center text-xl font-bold shrink-0">
+                🔒
+              </span>
+              <div>
+                <h3 className="text-base font-black text-zinc-900">
+                  ยืนยันปิดรอบซ้อมและตัดยอด
+                </h3>
+                <p className="text-xs text-zinc-500">
+                  {sessionDetails?.title}
+                </p>
+              </div>
+            </div>
+
+            <div className="py-4 space-y-3">
+              <div className="p-3.5 rounded-2xl bg-rose-50 border border-rose-200/80 text-rose-900 text-xs leading-relaxed space-y-2">
+                <p className="font-bold flex items-center gap-1.5 text-rose-800">
+                  <span>⚠️</span>
+                  <span>เงื่อนไขเมื่อปิดรอบซ้อม:</span>
+                </p>
+                <ul className="list-disc list-inside space-y-1 text-rose-700">
+                  <li>
+                    นักกีฬาที่ยังไม่ได้เช็คชื่อหรือลา ({liveUnchecked} คน) จะถูกตัดเป็น <strong className="text-rose-950">&quot;ขาดซ้อม&quot;</strong> อัตโนมัติ
+                  </li>
+                  <li>
+                    ระบบสแกน QR สำหรับรอบนี้จะถูกล็อคปิดทันที
+                  </li>
+                  <li>
+                    โค้ชยังสามารถปรับเปลี่ยนสถานะย้อนหลังได้ตลอดเวลา (ระบบจะบันทึกประวัติ Audit Log ไว้)
+                  </li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-zinc-100">
+              <button
+                type="button"
+                disabled={isClosingPending}
+                onClick={() => setShowCloseModal(false)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-zinc-600 hover:bg-zinc-100 transition cursor-pointer min-h-[40px]"
+              >
+                ยกเลิก
+              </button>
+              <button
+                type="button"
+                disabled={isClosingPending}
+                onClick={handleConfirmCloseSession}
+                className="px-5 py-2.5 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-500 active:bg-rose-700 text-white shadow-xs transition cursor-pointer min-h-[40px] flex items-center gap-1.5 active:scale-95"
+              >
+                {isClosingPending ? (
+                  <span>กำลังตัดยอด...</span>
+                ) : (
+                  <>
+                    <span>🔒</span>
+                    <span>ยืนยันปิดรอบ & ตัดยอดขาด</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </form>
   );
 }

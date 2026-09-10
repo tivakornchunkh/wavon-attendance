@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useTransition } from 'react';
+import React, { useState, useEffect, useTransition } from 'react';
 import { selfCheckInAction } from '../../actions/session.actions';
 
 interface Athlete {
@@ -24,6 +24,7 @@ interface AthleteCheckInViewProps {
     date: string;
     startTime: string;
     endTime: string;
+    isClosed?: boolean;
   };
   team: {
     id: string;
@@ -31,6 +32,7 @@ interface AthleteCheckInViewProps {
   };
   athletes: Athlete[];
   initialAttendances: ExistingAttendance[];
+  isPitchVerified?: boolean;
 }
 
 export default function AthleteCheckInView({
@@ -38,6 +40,7 @@ export default function AthleteCheckInView({
   team,
   athletes,
   initialAttendances,
+  isPitchVerified = true,
 }: AthleteCheckInViewProps) {
   const [activeTab, setActiveTab] = useState<'PRESENT' | 'LEAVE'>('PRESENT');
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,13 +59,38 @@ export default function AthleteCheckInView({
   const [isPending, startTransition] = useTransition();
   const [toastMessage, setToastMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
+  // 10B: Remember Me on Device
+  const [rememberedAthleteId, setRememberedAthleteId] = useState<string | null>(null);
+  const [dismissRemembered, setDismissRemembered] = useState(false);
+
+  // 8A & 7B: Digital Pass & Arrival Rank Modal
+  const [digitalPassData, setDigitalPassData] = useState<{
+    athleteName: string;
+    athleteCode: string;
+    rank: number;
+    time: string;
+  } | null>(null);
+
+  useEffect(() => {
+    try {
+      const savedId = localStorage.getItem('wavon_remembered_athlete_id');
+      if (savedId) {
+        setRememberedAthleteId(savedId);
+      }
+    } catch {}
+  }, []);
+
+  const rememberedAthlete = rememberedAthleteId
+    ? athletes.find((a) => a.id === rememberedAthleteId)
+    : null;
+
   const quickLeaveOptions = ['ลาป่วย', 'ติดเรียน / ติดสอบ', 'ติดธุระครอบครัว', 'บาดเจ็บจากการแข่งขัน', 'อื่นๆ'];
 
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
     setToastMessage({ text, type });
     setTimeout(() => {
       setToastMessage(null);
-    }, 4000);
+    }, 4500);
   };
 
   const filteredAthletes = athletes.filter((a) => {
@@ -78,10 +106,19 @@ export default function AthleteCheckInView({
   const presentCount = Object.values(attendances).filter((a) => a.status === 'PRESENT').length;
   const leaveCount = Object.values(attendances).filter((a) => a.status === 'LEAVE').length;
 
-  const handleConfirmCheckIn = () => {
-    if (!selectedAthlete || isPending) return;
+  // 9B: List of teammates who have checked in
+  const presentAthletes = athletes.filter((a) => attendances[a.id]?.status === 'PRESENT');
 
-    const athleteToSubmit = selectedAthlete;
+  const handleConfirmCheckIn = (targetAthlete?: Athlete) => {
+    const athleteToSubmit = targetAthlete || selectedAthlete;
+    if (!athleteToSubmit || isPending) return;
+
+    // 4A: Check Pitch Anti-cheat
+    if (activeTab === 'PRESENT' && !isPitchVerified) {
+      showToast('📍 ต้องสแกน QR Code ริมสนามจริงเพื่อเช็คชื่อเข้าซ้อม (หากไม่ได้มาสนาม สามารถกดแท็บ "แจ้งลาซ้อม" ได้ทันที)', 'error');
+      return;
+    }
+
     const finalReason =
       activeTab === 'LEAVE'
         ? leaveReason === 'อื่นๆ' && customLeaveReason.trim()
@@ -89,29 +126,45 @@ export default function AthleteCheckInView({
           : leaveReason
         : undefined;
 
+    const arrivalRank = presentCount + 1;
+    const nowTime = new Date().toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+
     startTransition(async () => {
       try {
         await selfCheckInAction(
           session.id,
           athleteToSubmit.id,
           activeTab,
-          finalReason
+          finalReason,
+          isPitchVerified
         );
 
+        // Update local state instantly
         setAttendances((prev) => ({
           ...prev,
           [athleteToSubmit.id]: {
             status: activeTab,
-            notes: finalReason || (activeTab === 'PRESENT' ? 'สแกน QR เช็คชื่อตนเอง' : 'แจ้งลาซ้อม'),
+            notes: finalReason || (activeTab === 'PRESENT' ? 'สแกน QR ริมสนาม' : 'แจ้งลาซ้อม'),
           },
         }));
 
-        showToast(
-          activeTab === 'PRESENT'
-            ? `✓ เช็คชื่อเข้าซ้อมเรียบร้อย: ${athleteToSubmit.name} (${athleteToSubmit.athleteCode})`
-            : `บันทึกการแจ้งลาซ้อมเรียบร้อย: ${athleteToSubmit.name} (${finalReason})`,
-          'success'
-        );
+        // 10B: Save remembered athlete
+        try {
+          localStorage.setItem('wavon_remembered_athlete_id', athleteToSubmit.id);
+          setRememberedAthleteId(athleteToSubmit.id);
+        } catch {}
+
+        if (activeTab === 'PRESENT') {
+          // 8A & 7B: Show Digital Match Pass & Confetti
+          setDigitalPassData({
+            athleteName: athleteToSubmit.name,
+            athleteCode: athleteToSubmit.athleteCode,
+            rank: arrivalRank,
+            time: `${nowTime} น.`,
+          });
+        } else {
+          showToast(`บันทึกการแจ้งลาซ้อมเรียบร้อย: ${athleteToSubmit.name} (${finalReason})`, 'success');
+        }
 
         setSelectedAthlete(null);
         setCustomLeaveReason('');
@@ -120,6 +173,31 @@ export default function AthleteCheckInView({
       }
     });
   };
+
+  // 3A: Closed Session Lock
+  if (session.isClosed) {
+    return (
+      <div className="w-full max-w-md mx-auto py-8 px-4">
+        <div className="bg-white rounded-3xl p-8 border border-zinc-200 text-center shadow-xl space-y-4">
+          <div className="w-16 h-16 rounded-3xl bg-zinc-900 text-white flex items-center justify-center text-3xl mx-auto shadow-md">
+            🔒
+          </div>
+          <span className="px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-wider bg-rose-100 text-rose-800 border border-rose-200">
+            ปิดรอบการซ้อมแล้ว
+          </span>
+          <h2 className="text-xl font-black text-zinc-900">
+            {session.title}
+          </h2>
+          <p className="text-xs sm:text-sm text-zinc-500 leading-relaxed">
+            รอบการฝึกซ้อมนี้ถูกปิดรับการเช็คชื่อเรียบร้อยแล้ว หากนักกีฬามาถึงสนามแล้วไม่ได้สแกน กรุณาติดต่อโค้ชผู้ฝึกสอนเพื่อแก้ไขสถานะในระบบ
+          </p>
+          <div className="pt-4 border-t border-zinc-100 text-xs text-zinc-400 font-mono">
+            {session.date} • {session.startTime} - {session.endTime} น.
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-lg mx-auto py-4 sm:py-8 px-3.5 sm:px-4">
@@ -138,6 +216,85 @@ export default function AthleteCheckInView({
           <p className="text-xs sm:text-sm font-semibold flex-1 leading-snug">
             {toastMessage.text}
           </p>
+        </div>
+      )}
+
+      {/* 4A: Notice if opened via LINE without Pitch Verification */}
+      {!isPitchVerified && (
+        <div className="mb-4 p-3.5 bg-amber-500/10 border border-amber-500/30 rounded-2xl text-amber-900 text-xs flex items-center gap-2.5">
+          <span className="text-lg">📱</span>
+          <p className="leading-snug">
+            <strong>เปิดผ่านลิงก์ LINE:</strong> สามารถกดแท็บ <strong>&quot;แจ้งลาซ้อม&quot;</strong> จากที่บ้านได้ทันที (สำหรับการเช็คชื่อเข้าซ้อม ต้องสแกน QR ริมสนามจริง)
+          </p>
+        </div>
+      )}
+
+      {/* 8A: Digital Match Pass Celebration Modal */}
+      {digitalPassData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
+          <div className="bg-[#0F1115] text-white rounded-3xl max-w-sm w-full p-6 shadow-2xl border border-emerald-500/40 text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Confetti Particle simulation */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden flex items-center justify-center">
+              <span className="text-5xl animate-bounce">🎉</span>
+            </div>
+
+            {/* Pass Header */}
+            <div className="flex items-center justify-between pb-3 border-b border-zinc-800">
+              <span className="text-[10px] font-black uppercase tracking-widest text-emerald-400">
+                PITCH CHECK-IN PASS
+              </span>
+              <span className="text-[10px] text-zinc-400 font-mono">
+                {digitalPassData.time}
+              </span>
+            </div>
+
+            {/* Club & Title */}
+            <div className="mt-4">
+              <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                {team.name}
+              </span>
+              <h3 className="text-lg font-black text-white mt-1.5">
+                {session.title}
+              </h3>
+            </div>
+
+            {/* Athlete Badge */}
+            <div className="my-5 p-4 bg-zinc-900/90 rounded-2xl border border-zinc-800 flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-xl bg-emerald-500 text-zinc-950 flex items-center justify-center font-black text-sm shrink-0 shadow-md">
+                {digitalPassData.athleteCode}
+              </div>
+              <div className="text-left overflow-hidden">
+                <p className="text-base font-black text-white truncate">
+                  {digitalPassData.athleteName}
+                </p>
+                <p className="text-[11px] text-zinc-400">
+                  รหัส: {digitalPassData.athleteCode}
+                </p>
+              </div>
+            </div>
+
+            {/* 7B: Early Bird Rank Badge */}
+            <div className="py-2.5 px-3 bg-amber-500/15 border border-amber-500/30 rounded-xl text-amber-300 text-xs font-bold flex items-center justify-center gap-1.5">
+              <span>⚡</span>
+              <span>คุณมาถึงสนามเป็นคนที่ #{digitalPassData.rank} ของทีมวันนี้!</span>
+            </div>
+
+            {/* Stamp */}
+            <div className="mt-4 inline-block px-4 py-1.5 rounded-full border-2 border-emerald-400 text-emerald-400 text-xs font-black tracking-widest uppercase rotate-[-3deg] shadow-lg shadow-emerald-500/20">
+              ✓ VERIFIED PRESENT
+            </div>
+
+            {/* Close Button */}
+            <div className="mt-6">
+              <button
+                type="button"
+                onClick={() => setDigitalPassData(null)}
+                className="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs sm:text-sm transition cursor-pointer shadow-md"
+              >
+                เสร็จสิ้น / ปิดหน้าต่าง
+              </button>
+            </div>
+          </div>
         </div>
       )}
 
@@ -183,7 +340,80 @@ export default function AthleteCheckInView({
             <p className="text-xl font-black text-amber-400 mt-0.5">{leaveCount} คน</p>
           </div>
         </div>
+
+        {/* 9B: Teammates on Pitch Strip */}
+        {presentAthletes.length > 0 && (
+          <div className="mt-4 pt-3 border-t border-zinc-800/80">
+            <p className="text-[10px] font-bold uppercase tracking-wider text-zinc-400 mb-2 flex items-center gap-1">
+              <span>👥</span>
+              <span>เพื่อนร่วมทีมที่ถึงสนามแล้ว ({presentAthletes.length} คน):</span>
+            </p>
+            <div className="flex flex-wrap gap-1.5 max-h-16 overflow-y-auto">
+              {presentAthletes.map((pa) => (
+                <span
+                  key={pa.id}
+                  className="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-zinc-900 text-emerald-300 border border-zinc-800 flex items-center gap-1"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  <span>{pa.name}</span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* 10B: Remembered Athlete 1-Click Quick Check-in Banner */}
+      {rememberedAthlete && !dismissRemembered && (
+        <div className="mt-4 p-4 rounded-2xl bg-emerald-500/10 border-2 border-emerald-500/40 shadow-md">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="text-2xl">⚡</span>
+              <div>
+                <p className="text-xs font-black text-emerald-950">
+                  ยินดีต้อนรับกลับมา! {rememberedAthlete.name} ({rememberedAthlete.athleteCode})
+                </p>
+                <p className="text-[10px] text-emerald-700">
+                  เครื่องนี้ถูกจดจำไว้ แตะปุ่มด้านล่างเพื่อเช็คชื่อทันทีใน 1 วินาที
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setDismissRemembered(true)}
+              className="text-[11px] text-zinc-400 hover:text-zinc-700 p-1"
+              title="สลับชื่อ"
+            >
+              ✕
+            </button>
+          </div>
+
+          <div className="mt-3 flex items-center gap-2">
+            <button
+              type="button"
+              onClick={() => handleConfirmCheckIn(rememberedAthlete)}
+              disabled={isPending}
+              className="flex-1 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-black text-xs rounded-xl transition cursor-pointer shadow-md flex items-center justify-center gap-1.5"
+            >
+              {isPending ? (
+                <span>กำลังบันทึก...</span>
+              ) : (
+                <>
+                  <span>✓</span>
+                  <span>1-Click เช็คชื่อเข้าซ้อมทันที</span>
+                </>
+              )}
+            </button>
+            <button
+              type="button"
+              onClick={() => setDismissRemembered(true)}
+              className="py-2.5 px-3 bg-white text-zinc-600 text-xs font-bold rounded-xl border border-zinc-200 hover:bg-zinc-50"
+            >
+              ไม่ใช่ฉัน
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Tab Selector: Present vs Leave */}
       <div className="mt-4 bg-zinc-200/80 p-1.5 rounded-2xl flex items-center gap-1.5">
@@ -412,7 +642,7 @@ export default function AthleteCheckInView({
               </button>
               <button
                 type="button"
-                onClick={handleConfirmCheckIn}
+                onClick={() => handleConfirmCheckIn(selectedAthlete)}
                 disabled={isPending}
                 className={`flex-1 py-3.5 rounded-xl text-xs sm:text-sm font-black text-white transition flex items-center justify-center gap-2 cursor-pointer min-h-[48px] ${
                   activeTab === 'PRESENT'

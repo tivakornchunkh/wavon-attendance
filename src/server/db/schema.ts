@@ -1,4 +1,4 @@
-import { sqliteTable, text, uniqueIndex, index } from 'drizzle-orm/sqlite-core';
+import { sqliteTable, text, uniqueIndex, index, integer } from 'drizzle-orm/sqlite-core';
 import { sql } from 'drizzle-orm';
 
 // 1. Teams (รองรับ Multi-team ในอนาคต)
@@ -50,10 +50,29 @@ export const trainingSessions = sqliteTable(
     startTime: text('start_time').notNull(), // Format: HH:mm
     endTime: text('end_time').notNull(), // Format: HH:mm
     createdBy: text('created_by').notNull().references(() => users.id),
+    isClosed: integer('is_closed').default(0).notNull(),
     createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
   },
   (table) => [
     index('idx_sessions_team_date').on(table.teamId, table.date),
+  ]
+);
+
+// 4.1 Recurring Training Schedules (ตารางซ้อมประจำสัปดาห์ เช่น จ-ศ 17:00-19:00)
+export const recurringSchedules = sqliteTable(
+  'recurring_schedules',
+  {
+    id: text('id').primaryKey(),
+    teamId: text('team_id').notNull().references(() => teams.id, { onDelete: 'cascade' }),
+    daysOfWeek: text('days_of_week').notNull(), // JSON string เช่น "[1,2,3,4,5]" (1=Mon..5=Fri)
+    startTime: text('start_time').notNull(), // Format: HH:mm
+    endTime: text('end_time').notNull(), // Format: HH:mm
+    title: text('title').notNull(), // เช่น "ซ้อมประจำวัน"
+    isActive: integer('is_active').default(1).notNull(),
+    createdAt: text('created_at').default(sql`(CURRENT_TIMESTAMP)`).notNull(),
+  },
+  (table) => [
+    index('idx_recurring_team').on(table.teamId),
   ]
 );
 

@@ -6,6 +6,7 @@ export interface TrainingSession {
   startTime: string; // HH:mm
   endTime: string; // HH:mm
   createdBy: string;
+  isClosed?: number;
   createdAt: string;
 }
 
