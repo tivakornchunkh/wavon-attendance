@@ -1,12 +1,12 @@
-# ⚽ WAVON Athlete Attendance System (v2.0)
+# ⚽ WAVON Athlete Attendance System (v2.1)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.0.0-emerald)
+![Version](https://img.shields.io/badge/version-2.1.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
-![Tests](https://img.shields.io/badge/Vitest-29%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Vitest-36%20passed-brightgreen)
 
 ---
 

@@ -8,6 +8,7 @@ import { AthleteRepository } from '../../../src/server/repositories/athlete.repo
 import { AttendanceRepository } from '../../../src/server/repositories/attendance.repo';
 import AthleteCheckInView from './AthleteCheckInView';
 import WavonLogo from '../../../components/WavonLogo';
+import { APP_VERSION } from '../../../src/version';
 
 export const dynamic = 'force-dynamic';
 
@@ -104,7 +105,10 @@ export default async function CheckInPage({ params, searchParams }: PageProps) {
       </main>
 
       <footer className="py-6 border-t border-zinc-200 text-center text-xs text-zinc-400">
-        <p className="font-semibold text-zinc-500">WAVON Athlete Attendance</p>
+        <p className="font-semibold text-zinc-500 flex items-center justify-center gap-1.5">
+          <span>WAVON Athlete Attendance</span>
+          <span className="font-mono text-[10px] bg-zinc-100 border border-zinc-200 px-1.5 py-0.5 rounded-md text-zinc-600 font-bold">{APP_VERSION}</span>
+        </p>
         <p className="text-[10px] text-zinc-400 mt-0.5">ระบบเช็คชื่อนักกีฬาแบบไร้รอยต่อ</p>
       </footer>
     </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import WavonLogo from './WavonLogo';
 import UserGuideModal from './UserGuideModal';
+import { APP_VERSION } from '../src/version';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -114,10 +115,13 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
       {/* ========================================================= */}
       <aside className="hidden lg:flex lg:flex-col lg:w-64 shrink-0 bg-[#0F1115] text-white border-r border-zinc-800/80 fixed inset-y-0 z-40">
         {/* Brand Header */}
-        <div className="h-20 px-6 flex items-center border-b border-zinc-800/60">
+        <div className="h-20 px-6 flex items-center justify-between border-b border-zinc-800/60">
           <Link href="/" className="transition hover:opacity-90">
             <WavonLogo theme="dark" size="md" />
           </Link>
+          <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 shadow-2xs">
+            {APP_VERSION}
+          </span>
         </div>
 
         {/* Current Active Team / Club Badge */}
@@ -236,8 +240,11 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
           </button>
 
           {/* Logo Center */}
-          <Link href="/" className="transition hover:opacity-90">
+          <Link href="/" className="transition hover:opacity-90 flex items-center gap-1.5">
             <WavonLogo theme="dark" size="sm" />
+            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+              {APP_VERSION}
+            </span>
           </Link>
 
           {/* Right Action: User Icon / Team */}
@@ -284,7 +291,12 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
           <div className="relative flex-1 flex flex-col max-w-xs w-full bg-[#0F1115] text-white shadow-2xl border-r border-zinc-800">
             {/* Drawer Header */}
             <div className="h-16 px-5 flex items-center justify-between border-b border-zinc-800">
-              <WavonLogo theme="dark" size="sm" />
+              <div className="flex items-center gap-2">
+                <WavonLogo theme="dark" size="sm" />
+                <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                  {APP_VERSION}
+                </span>
+              </div>
               <button
                 type="button"
                 onClick={() => setIsMobileMenuOpen(false)}

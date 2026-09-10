@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { loginAction } from '../actions/auth.actions';
 import WavonLogo from '../../components/WavonLogo';
 import { LoginForm } from './LoginForm';
+import { APP_VERSION } from '../../src/version';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,7 +65,7 @@ export default function LoginPage() {
         {/* System Credits & Version Box */}
         <div className="text-center py-2 space-y-1">
           <p className="text-xs font-bold text-zinc-700">
-            WAVON Athlete Attendance System <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-bold">v2.0</span>
+            WAVON Athlete Attendance System <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300 font-mono font-bold">{APP_VERSION}</span>
           </p>
           <p className="text-[11px] text-zinc-400">
             Designed & Engineered for High-Performance Sports Teams & Academies
