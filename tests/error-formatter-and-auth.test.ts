@@ -70,3 +70,19 @@ describe('Version Synchronization', () => {
   });
 });
 
+describe('User Persistence & Guardrails', () => {
+  it('ensures Arm account exists with ADMIN privileges across reboots', async () => {
+    const { ensureDefaultTeamAndCoach } = await import('../src/server/helpers/default-team');
+    const { db } = await import('../src/server/db/client');
+    const { users } = await import('../src/server/db/schema');
+    const { eq } = await import('drizzle-orm');
+
+    await ensureDefaultTeamAndCoach();
+
+    const [armUser] = await db.select().from(users).where(eq(users.username, 'arm')).limit(1);
+    expect(armUser).toBeDefined();
+    expect(armUser.username).toBe('arm');
+    expect(armUser.role).toBe('ADMIN');
+  });
+});
+
