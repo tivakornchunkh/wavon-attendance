@@ -93,3 +93,4 @@ export function formatUserFriendlyError(error: unknown, fallbackMessage = 'à¹€à¸
 
   return fallbackMessage;
 }
+

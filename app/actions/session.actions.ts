@@ -307,6 +307,73 @@ export async function getRecurringScheduleAction(teamId: string) {
 }
 
 /**
+ * ตรวจสอบและสร้างรอบซ้อมประจำวันของวันนี้โดยอัตโนมัติ หากวันนี้ตรงกับตารางซ้อมประจำ (Recurring Schedule)
+ * ทำให้รอบซ้อมปรากฏขึ้นในรายการรอบซ้อมโดยอัตโนมัติทันทีที่ถึงวันซ้อม โดยที่โค้ชไม่ต้องกดสร้างเอง
+ */
+export async function ensureTodayRecurringSession(teamId: string) {
+  try {
+    const bkk = getBangkokDateTime();
+    const todayStr = bkk.dateStr;
+    const todayDayOfWeek = bkk.dayOfWeek; // 0=Sun, 1=Mon...
+
+    // 1. ตรวจสอบตารางซ้อมประจำของทีมว่าเปิดใช้งานอยู่หรือไม่
+    const [schedule] = await db
+      .select()
+      .from(recurringSchedules)
+      .where(and(eq(recurringSchedules.teamId, teamId), eq(recurringSchedules.isActive, 1)))
+      .limit(1);
+
+    if (!schedule) {
+      return null;
+    }
+
+    const days: number[] = JSON.parse(schedule.daysOfWeek || '[]');
+    if (!days.includes(todayDayOfWeek)) {
+      return null;
+    }
+
+    // 2. ตรวจสอบว่ามีรอบซ้อมของวันนี้อยู่แล้วหรือไม่ (ป้องกันการสร้างซ้ำ)
+    const todaySessions = await db
+      .select()
+      .from(trainingSessions)
+      .where(and(eq(trainingSessions.teamId, teamId), eq(trainingSessions.date, todayStr)))
+      .orderBy(desc(trainingSessions.startTime));
+
+    if (todaySessions.length > 0) {
+      return todaySessions[0];
+    }
+
+    // 3. ถ้ายังไม่มีรอบซ้อมของวันนี้ ให้สร้างขึ้นมาอัตโนมัติทันที
+    const [coach] = await db.select().from(users).where(eq(users.teamId, teamId)).limit(1);
+    const [firstUser] = await db.select().from(users).limit(1);
+    const creatorId = coach?.id || firstUser?.id || 'coach_default';
+    const newSessionId = `sess-${crypto.randomUUID().slice(0, 8)}`;
+
+    await db.insert(trainingSessions).values({
+      id: newSessionId,
+      teamId,
+      title: schedule.title || 'ซ้อมประจำวัน',
+      date: todayStr,
+      startTime: schedule.startTime,
+      endTime: schedule.endTime,
+      createdBy: creatorId,
+      isClosed: 0,
+    });
+
+    const [createdSession] = await db
+      .select()
+      .from(trainingSessions)
+      .where(eq(trainingSessions.id, newSessionId))
+      .limit(1);
+
+    return createdSession || null;
+  } catch (err: unknown) {
+    console.error('ensureTodayRecurringSession error:', err);
+    return null;
+  }
+}
+
+/**
  * ค้นหาหรือสร้างรอบซ้อมปัจจุบันของสโมสรสำหรับป้าย QR Code ถาวรประจำสนาม (11A)
  */
 export async function resolveClubActiveSession(clubId: string): Promise<{
@@ -318,6 +385,9 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
   if (!club) {
     throw new Error('ไม่พบสโมสรนี้ในระบบ');
   }
+
+  // สร้างรอบซ้อมประจำวันของวันนี้อัตโนมัติหากตรงกับตาราง
+  await ensureTodayRecurringSession(clubId);
 
   const bkk = getBangkokDateTime();
   const todayStr = bkk.dateStr;
@@ -334,8 +404,8 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
   for (const s of todaySessions) {
     const [sh, sm] = s.startTime.split(':').map(Number);
     const [eh, em] = s.endTime.split(':').map(Number);
-    const startM = (sh || 0) * 60 + (sm || 0) - 30; // เปิดให้เช็คชื่อก่อนเริ่ม 30 นาที
-    const endM = (eh || 0) * 60 + (em || 0);
+    const startM = (sh || 0) * 60 + (sm || 0) - 60; // เปิดให้เช็คชื่อก่อนเริ่ม 60 นาที
+    const endM = (eh || 0) * 60 + (em || 0) + 60; // ปิดหลังเวลาเลิก 60 นาที
 
     if (currentMinutes >= startM && currentMinutes <= endM && s.isClosed !== 1) {
       return {
@@ -352,7 +422,7 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
     }
   }
 
-  // ถ้ารอบซ้อมวันนี้มีอยู่แล้วแต่เลยเวลาไปแล้วและยังไม่ปิด ให้ส่งรอบนั้น
+  // ถ้ารอบซ้อมวันนี้มีอยู่แล้วและยังไม่ปิด ให้ส่งรอบนั้น
   if (todaySessions.length > 0 && todaySessions[0].isClosed !== 1) {
     const s = todaySessions[0];
     return {
@@ -368,7 +438,7 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
     };
   }
 
-  // 2. ถ้ายังไม่มีรอบซ้อมวันนี้ ให้ตรวจสอบตารางซ้อมประจำ (Recurring Schedule)
+  // 2. ดึงข้อมูลรอบถัดไปเพื่อแจ้งผู้ใช้
   const [schedule] = await db
     .select()
     .from(recurringSchedules)
@@ -376,48 +446,6 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
     .limit(1);
 
   if (schedule) {
-    const days: number[] = JSON.parse(schedule.daysOfWeek || '[]');
-    const todayDayOfWeek = bkk.dayOfWeek; // 0=Sun, 1=Mon...
-
-    if (days.includes(todayDayOfWeek)) {
-      const [sh, sm] = schedule.startTime.split(':').map(Number);
-      const [eh, em] = schedule.endTime.split(':').map(Number);
-      const startM = (sh || 0) * 60 + (sm || 0) - 60; // เปิดก่อนเวลา 60 นาที
-      const endM = (eh || 0) * 60 + (em || 0) + 60;
-
-      // ถ้าอยู่ในช่วงเวลาซ้อมของวันนี้ ให้สร้างรอบซ้อมของวันนี้อัตโนมัติ
-      if (currentMinutes >= startM && currentMinutes <= endM) {
-        // หา coach ประจำทีมเพื่อใช้เป็น createdBy (ไม่ใช้ 'system' เพื่อป้องกัน foreign key error)
-        const [coach] = await db.select().from(users).where(eq(users.teamId, clubId)).limit(1);
-        const [firstUser] = await db.select().from(users).limit(1);
-        const creatorId = coach?.id || firstUser?.id || 'coach_default';
-        const newSessionId = `sess-${crypto.randomUUID().slice(0, 8)}`;
-        
-        await db.insert(trainingSessions).values({
-          id: newSessionId,
-          teamId: clubId,
-          title: schedule.title || 'ซ้อมประจำวัน',
-          date: todayStr,
-          startTime: schedule.startTime,
-          endTime: schedule.endTime,
-          createdBy: creatorId,
-          isClosed: 0,
-        });
-
-        return {
-          activeSession: {
-            id: newSessionId,
-            title: schedule.title || 'ซ้อมประจำวัน',
-            date: todayStr,
-            startTime: schedule.startTime,
-            endTime: schedule.endTime,
-            isClosed: 0,
-          },
-          clubName: club.name,
-        };
-      }
-    }
-
     return {
       activeSession: null,
       clubName: club.name,

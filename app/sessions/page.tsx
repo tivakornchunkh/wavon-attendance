@@ -8,6 +8,7 @@ import {
   createPlannedSessionAction,
   createQuickSessionAction,
   getRecurringScheduleAction,
+  ensureTodayRecurringSession,
 } from '../actions/session.actions';
 import SessionsList from './SessionsList';
 import { QuickSessionForm } from './QuickSessionForm';
@@ -22,6 +23,9 @@ export default async function SessionsPage() {
   const teamId = session.team?.id || DEFAULT_TEAM_ID;
   const sessionRepo = new SessionRepository(db);
   const attendanceRepo = new AttendanceRepository(db);
+
+  // ตรวจสอบและสร้างรอบซ้อมประจำวันอัตโนมัติหากวันนี้ตรงกับตารางซ้อมประจำ (Recurring Schedule)
+  await ensureTodayRecurringSession(teamId);
 
   const sessions = await sessionRepo.findByDateRange(teamId);
   const recurringSchedule = await getRecurringScheduleAction(teamId);
