@@ -8,20 +8,62 @@ import { getCurrentSession } from '../src/server/helpers/auth';
 import { DEFAULT_TEAM_ID } from '../src/server/helpers/default-team';
 import { seedRealisticDataAction, clearDemoDataAction } from './actions/seed.actions';
 import { autoCloseExpiredSessions } from './actions/session.actions';
+import { getBangkokDateTime } from '../src/server/helpers/timezone';
+import DashboardFilterBar from '../components/DashboardFilterBar';
 
 export const dynamic = 'force-dynamic';
 
-function getDateRangeFromPeriod(period?: string): { startDate?: string; endDate?: string; label: string } {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = now.getMonth();
+function getDateRangeFromPeriod(
+  period?: string,
+  customStart?: string,
+  customEnd?: string
+): { startDate?: string; endDate?: string; label: string } {
+  const bkk = getBangkokDateTime();
+  const todayStr = bkk.dateStr;
+  const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
+
+  if (period === 'today') {
+    return {
+      startDate: todayStr,
+      endDate: todayStr,
+      label: 'วันนี้',
+    };
+  }
+
+  if (period === 'last_7_days') {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    const start = d.toISOString().split('T')[0];
+    return {
+      startDate: start,
+      endDate: todayStr,
+      label: '7 วันล่าสุด',
+    };
+  }
+
+  if (period === 'this_week') {
+    const d = new Date();
+    const day = d.getDay();
+    const diffToMon = (day === 0 ? -6 : 1) - day;
+    const mon = new Date(d);
+    mon.setDate(d.getDate() + diffToMon);
+    const sun = new Date(mon);
+    sun.setDate(mon.getDate() + 6);
+    return {
+      startDate: mon.toISOString().split('T')[0],
+      endDate: sun.toISOString().split('T')[0],
+      label: 'สัปดาห์นี้',
+    };
+  }
 
   if (period === 'this_month') {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const start = firstDay.toISOString().split('T')[0];
     const end = lastDay.toISOString().split('T')[0];
-    const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     return {
       startDate: start,
       endDate: end,
@@ -30,17 +72,38 @@ function getDateRangeFromPeriod(period?: string): { startDate?: string; endDate?
   }
 
   if (period === 'last_month') {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth();
     const firstDay = new Date(year, month - 1, 1);
     const lastDay = new Date(year, month, 0);
     const start = firstDay.toISOString().split('T')[0];
     const end = lastDay.toISOString().split('T')[0];
     const prevMonth = (month - 1 + 12) % 12;
     const prevYear = month === 0 ? year - 1 : year;
-    const thMonths = ['ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.', 'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.'];
     return {
       startDate: start,
       endDate: end,
       label: `เดือนที่แล้ว (${thMonths[prevMonth]} ${prevYear + 543})`,
+    };
+  }
+
+  if (period === 'last_3_months') {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 3);
+    const start = d.toISOString().split('T')[0];
+    return {
+      startDate: start,
+      endDate: todayStr,
+      label: '3 เดือนล่าสุด',
+    };
+  }
+
+  if (period === 'custom' && customStart && customEnd) {
+    return {
+      startDate: customStart,
+      endDate: customEnd,
+      label: `${customStart} ถึง ${customEnd}`,
     };
   }
 
@@ -52,12 +115,12 @@ function getDateRangeFromPeriod(period?: string): { startDate?: string; endDate?
 }
 
 interface DashboardPageProps {
-  searchParams: Promise<{ period?: string }>;
+  searchParams: Promise<{ period?: string; startDate?: string; endDate?: string }>;
 }
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
-  const { period } = await searchParams;
-  const { startDate, endDate, label: periodLabel } = getDateRangeFromPeriod(period);
+  const { period, startDate: queryStart, endDate: queryEnd } = await searchParams;
+  const { startDate, endDate, label: periodLabel } = getDateRangeFromPeriod(period, queryStart, queryEnd);
 
   const session = await getCurrentSession();
   const teamId = session.team?.id || DEFAULT_TEAM_ID;
@@ -70,8 +133,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const attendanceRepo = new AttendanceRepository(db);
   const statsService = new StatisticsService(attendanceRepo, athleteRepo, sessionRepo);
 
-  const dashboard = await statsService.getDashboardSummary(teamId, startDate, endDate);
-  const allAthletesStats = await statsService.getAllAthletesStats(teamId, startDate, endDate);
+  const [dashboard, allAthletesStats] = await Promise.all([
+    statsService.getDashboardSummary(teamId, startDate, endDate),
+    statsService.getAllAthletesStats(teamId, startDate, endDate),
+  ]);
 
   // คำนวณยอดรวมสำหรับชาร์ต
   let totalPresents = 0;
@@ -160,61 +225,14 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       </div>
 
       {/* ========================================================= */}
-      {/* 2. DATE FILTER & EXPORT ACTION BAR (Touch-friendly) */}
+      {/* 2. DATE FILTER & EXPORT ACTION BAR (Enhanced Granular Filters) */}
       {/* ========================================================= */}
-      <div className="bg-white p-3.5 sm:p-4 rounded-2xl border border-zinc-200/80 shadow-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        {/* Filter Pills */}
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="text-xs font-semibold text-zinc-500 flex items-center gap-1">
-            <span>📅</span>
-            <span>ช่วงเวลา:</span>
-          </span>
-          <div className="flex items-center gap-1 bg-zinc-100 p-1 rounded-xl text-xs overflow-x-auto">
-            <Link
-              href="/"
-              className={`px-3 py-2 rounded-lg font-semibold transition min-h-[36px] flex items-center ${
-                !period || period === 'all'
-                  ? 'bg-white text-zinc-950 shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
-              }`}
-            >
-              ทั้งหมด
-            </Link>
-            <Link
-              href="/?period=this_month"
-              className={`px-3 py-2 rounded-lg font-semibold transition min-h-[36px] flex items-center ${
-                period === 'this_month'
-                  ? 'bg-white text-zinc-950 shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
-              }`}
-            >
-              เดือนนี้
-            </Link>
-            <Link
-              href="/?period=last_month"
-              className={`px-3 py-2 rounded-lg font-semibold transition min-h-[36px] flex items-center ${
-                period === 'last_month'
-                  ? 'bg-white text-zinc-950 shadow-xs'
-                  : 'text-zinc-600 hover:text-zinc-900'
-              }`}
-            >
-              เดือนที่แล้ว
-            </Link>
-          </div>
-          <span className="text-xs text-zinc-400 font-medium">({periodLabel})</span>
-        </div>
-
-        {/* Export Button */}
-        <a
-          href={`/api/export/attendance${startDate ? `?startDate=${startDate}&endDate=${endDate}` : ''}`}
-          download
-          className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer min-h-[42px] self-stretch sm:self-auto"
-          title="ดาวน์โหลดรายงานสรุปเป็นไฟล์ Excel/CSV (ภาษาไทยสมบูรณ์)"
-        >
-          <span>📥</span>
-          <span>ส่งออกรายงาน (Excel / CSV)</span>
-        </a>
-      </div>
+      <DashboardFilterBar
+        currentPeriod={period}
+        periodLabel={periodLabel}
+        startDate={startDate}
+        endDate={endDate}
+      />
 
       {/* ========================================================= */}
       {/* 3. 4 KEY METRIC CARDS (Responsive: 1 col mobile, 2 col iPad, 4 col desktop) */}

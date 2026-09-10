@@ -7,6 +7,7 @@ import {
   PeriodicStats,
 } from '../domain/statistics';
 import { AttendanceStatus } from '../domain/attendance';
+import { getBangkokDateTime } from '../../server/helpers/timezone';
 
 export class StatisticsService {
   constructor(
@@ -80,12 +81,47 @@ export class StatisticsService {
     startDate?: string,
     endDate?: string
   ): Promise<AthleteAttendanceStats[]> {
-    const athletesList = await this.athleteRepo.findByTeam(teamId);
+    const [athletesList, allRecords] = await Promise.all([
+      this.athleteRepo.findByTeam(teamId),
+      this.attendanceRepo.findByTeam(teamId, startDate, endDate),
+    ]);
+
+    // Group records by athleteId in memory
+    const recordsByAthlete = new Map<string, Array<{ status: string }>>();
+    for (const r of allRecords) {
+      const list = recordsByAthlete.get(r.athleteId) || [];
+      list.push(r);
+      recordsByAthlete.set(r.athleteId, list);
+    }
+
     const statsList: AthleteAttendanceStats[] = [];
 
     for (const athlete of athletesList) {
-      const stat = await this.getAthleteStats(athlete.id, startDate, endDate);
-      statsList.push(stat);
+      const records = recordsByAthlete.get(athlete.id) || [];
+      let present = 0;
+      let absent = 0;
+      let leave = 0;
+
+      for (const r of records) {
+        if (r.status === 'PRESENT') present++;
+        else if (r.status === 'ABSENT') absent++;
+        else if (r.status === 'LEAVE') leave++;
+      }
+
+      const total = records.length;
+      const rate = this.calculateAttendanceRate(present, total, leave);
+
+      statsList.push({
+        athleteId: athlete.id,
+        athleteCode: athlete.athleteCode,
+        athleteName: athlete.name,
+        status: athlete.status,
+        totalSessions: total,
+        presentCount: present,
+        absentCount: absent,
+        leaveCount: leave,
+        attendanceRate: rate,
+      });
     }
 
     return statsList;
@@ -99,12 +135,12 @@ export class StatisticsService {
     startDate?: string,
     endDate?: string
   ): Promise<DashboardSummary> {
-    const allAthletes = await this.athleteRepo.findByTeam(teamId);
+    const [allAthletes, sessions, athletesStats] = await Promise.all([
+      this.athleteRepo.findByTeam(teamId),
+      this.sessionRepo.findByDateRange(teamId, startDate, endDate),
+      this.getAllAthletesStats(teamId, startDate, endDate),
+    ]);
     const activeAthletes = allAthletes.filter((a) => a.status === 'ACTIVE');
-    const sessions = await this.sessionRepo.findByDateRange(teamId, startDate, endDate);
-
-    // ดึงสถิตินักกีฬาทั้งหมดเพื่อคำนวณภาพรวมและ Ranking
-    const athletesStats = await this.getAllAthletesStats(teamId, startDate, endDate);
 
     let totalPresents = 0;
     let totalAbsents = 0;
@@ -121,8 +157,12 @@ export class StatisticsService {
     const overallRate = this.calculateAttendanceRate(totalPresents, totalRecords, totalLeaves);
 
     // สรุปของวันนี้
-    const today = new Date().toISOString().split('T')[0];
-    const todaySessions = await this.sessionRepo.findByDateRange(teamId, today, today);
+    const bkk = getBangkokDateTime();
+    const today = bkk.dateStr;
+    const [todaySessions, todayRecords] = await Promise.all([
+      this.sessionRepo.findByDateRange(teamId, today, today),
+      this.attendanceRepo.findByTeam(teamId, today, today),
+    ]);
     let todaySummary: DashboardSummary['todaySummary'] = undefined;
 
     if (todaySessions.length > 0) {
@@ -130,13 +170,10 @@ export class StatisticsService {
       let tAbsent = 0;
       let tLeave = 0;
 
-      for (const sess of todaySessions) {
-        const atts = await this.attendanceRepo.findBySessionId(sess.id);
-        for (const a of atts) {
-          if (a.status === 'PRESENT') tPresent++;
-          else if (a.status === 'ABSENT') tAbsent++;
-          else if (a.status === 'LEAVE') tLeave++;
-        }
+      for (const a of todayRecords) {
+        if (a.status === 'PRESENT') tPresent++;
+        else if (a.status === 'ABSENT') tAbsent++;
+        else if (a.status === 'LEAVE') tLeave++;
       }
       const tTotal = tPresent + tAbsent + tLeave;
       todaySummary = {

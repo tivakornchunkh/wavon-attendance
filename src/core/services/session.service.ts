@@ -4,6 +4,7 @@ import { AttendanceRepository } from '../../server/repositories/attendance.repo'
 import { CreateSessionInput, QuickSessionInput } from '../validators/session.validator';
 import { TrainingSession } from '../domain/session';
 import { Athlete } from '../domain/athlete';
+import { getBangkokDateTime } from '../../server/helpers/timezone';
 import crypto from 'crypto';
 
 export class SessionService {
@@ -70,14 +71,12 @@ export class SessionService {
    * สร้างรอบซ้อมด่วนทันที (มีระบบป้องกันเวลาซ้อนทับ)
    */
   async createQuickSession(input: QuickSessionInput): Promise<TrainingSession> {
-    const now = new Date();
-    const date = now.toISOString().split('T')[0];
-    const startHour = String(now.getHours()).padStart(2, '0');
-    const startMin = String(now.getMinutes()).padStart(2, '0');
-    const defaultStartTime = `${startHour}:${startMin}`;
+    const bkk = getBangkokDateTime();
+    const date = bkk.dateStr;
+    const defaultStartTime = bkk.timeStr;
 
-    const endHour = String((now.getHours() + 1) % 24).padStart(2, '0');
-    const defaultEndTime = `${endHour}:${startMin}`;
+    const endHour = String((bkk.hours + 1) % 24).padStart(2, '0');
+    const defaultEndTime = `${endHour}:${String(bkk.minutes).padStart(2, '0')}`;
 
     const startTime = input.startTime || defaultStartTime;
     const endTime = input.endTime || defaultEndTime;

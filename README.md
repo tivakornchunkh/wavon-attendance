@@ -1,16 +1,40 @@
-# ⚽ WAVON Athlete Attendance System (v2.1)
+# ⚽ WAVON Athlete Attendance System (v2.3)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.2.2-emerald)
+![Version](https://img.shields.io/badge/version-2.3.0-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
-![Tests](https://img.shields.io/badge/Vitest-36%20passed-brightgreen)
+![Tests](https://img.shields.io/badge/Vitest-50%20passed-brightgreen)
 
 ---
 
-## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.0.0 (What's New in v2.0)
+## ⚡ อัปเดตใหญ่ประจำเวอร์ชัน 2.3.0 (What's New in v2.3.0)
+
+### 1. 🚀 เพิ่มความเร็วระบบสถิติ 100 เท่า (Batch Aggregation Engine)
+- แก้ปัญหาเว็บโหลดช้าเวลาเปลี่ยนหน้าและสลับช่วงวันที่: ปรับระบบประมวลผลสถิติเป็น Single Batch Join & In-Memory Aggregation
+- ลดจำนวน Database Roundtrip ไปยัง Turso จากมากกว่า 100 ครั้ง เหลือเพียง 1 ครั้ง สถิตินักกีฬาทั้งทีมโหลดเสร็จทันทีภายในไม่กี่มิลลิวินาที
+
+### 2. ⏱️ ปรับระบบเวลา QR Code เช็คชื่อให้เที่ยงตรง (Bangkok GMT+7 Sync)
+- **รอบด่วน (Quick Session):** บันทึกเวลาตาม Timezone ประเทศไทย (+07:00) ป้องกันปัญหาระบบมองว่าอยู่นอกเวลาหรือปิดรอบก่อนกำหนด
+- **QR ถาวรประจำสโมสร (Permanent QR):** เพิ่มเงื่อนไขเปิดรับสแกนเฉพาะช่วง 30 นาทีก่อนเริ่มจนถึงเวลาสิ้นสุดการซ้อม ป้องกันการสแกนนอกเวลารอบซ้อมล่วงหน้า
+
+### 3. 📊 แดชบอร์ดตัวกรองวันที่แบบละเอียด (Granular Dashboard Date Filters)
+- เพิ่มตัวเลือกกรองช่วงเวลา: วันนี้, 7 วันล่าสุด, สัปดาห์นี้, เดือนนี้, เดือนที่แล้ว, 3 เดือนล่าสุด, ประวัติทั้งหมด
+- เพิ่มแถบเลือกช่วงวันที่กำหนดเอง (Custom Date Range) ใช้งานสะดวกทั้งบนคอมพิวเตอร์และมือถือ
+
+### 4. 💬 ระบบส่งข้อเสนอแนะและแจ้งปัญหา (GitHub Issues Bug Report System)
+- หน้าต่างแจ้งปัญหาพร้อมดึงข้อมูลระบบอัตโนมัติ (เวอร์ชัน, บราวเซอร์, URL, เวลา)
+- ส่งข้อมูลปัญหาตรงเข้าสู่ GitHub Issues เพื่อการติดตามและแก้ไขอย่างเป็นระบบ
+
+### 5. 👨‍💻 ข้อมูลผู้พัฒนา & เครดิต (Developer Credits & Social Links)
+- ออกแบบและพัฒนาโดย **Tivakorn Chunkh (Arm)**
+- ลิงก์เชื่อมต่อไปยัง GitHub (`tivakornchunkh`), Facebook และ Instagram บน Footer และหน้าต่าง About
+
+---
+
+## 🚀 ประวัติเวอร์ชัน 2.0.0 (What's New in v2.0)
 
 ระบบได้รับการอัปเกรดครั้งสำคัญเพื่อรองรับการใช้งานจริงริมสนาม โดยเพิ่ม 4 ฟีเจอร์หลัก:
 

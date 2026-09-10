@@ -182,6 +182,34 @@ export class AttendanceRepository {
     }) as (Attendance & { sessionDate: string; sessionTitle: string })[];
   }
 
+  async findByTeam(
+    teamId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<(Attendance & { sessionDate: string; sessionTitle: string })[]> {
+    const results = await this.db
+      .select({
+        id: attendances.id,
+        sessionId: attendances.sessionId,
+        athleteId: attendances.athleteId,
+        status: attendances.status,
+        checkedAt: attendances.checkedAt,
+        checkedBy: attendances.checkedBy,
+        notes: attendances.notes,
+        sessionDate: trainingSessions.date,
+        sessionTitle: trainingSessions.title,
+      })
+      .from(attendances)
+      .innerJoin(trainingSessions, eq(attendances.sessionId, trainingSessions.id))
+      .where(eq(trainingSessions.teamId, teamId));
+
+    return results.filter((r) => {
+      if (startDate && r.sessionDate < startDate) return false;
+      if (endDate && r.sessionDate > endDate) return false;
+      return true;
+    }) as (Attendance & { sessionDate: string; sessionTitle: string })[];
+  }
+
   async findLogsByAttendanceId(attendanceId: string): Promise<AttendanceLog[]> {
     const results = await this.db
       .select()

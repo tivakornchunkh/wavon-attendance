@@ -488,12 +488,12 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
     .where(and(eq(trainingSessions.teamId, clubId), eq(trainingSessions.date, todayStr)))
     .orderBy(desc(trainingSessions.startTime));
 
-  // เลือกรอบที่อยู่ในช่วงเวลา หรือรอบล่าสุดของวันนี้
+  // 1. ตรวจสอบรอบซ้อมของวันนี้ที่อยู่ในช่วงเวลาฝึกซ้อมจริง (ก่อนเริ่ม 30 นาที จนถึงเวลาเลิกซ้อม + 15 นาที)
   for (const s of todaySessions) {
     const [sh, sm] = s.startTime.split(':').map(Number);
     const [eh, em] = s.endTime.split(':').map(Number);
-    const startM = (sh || 0) * 60 + (sm || 0) - 60; // เปิดให้เช็คชื่อก่อนเริ่ม 60 นาที
-    const endM = (eh || 0) * 60 + (em || 0) + 60; // ปิดหลังเวลาเลิก 60 นาที
+    const startM = (sh || 0) * 60 + (sm || 0) - 30; // เปิดให้เช็คชื่อก่อนเริ่ม 30 นาที
+    const endM = (eh || 0) * 60 + (em || 0) + 15; // ปิดหลังเวลาเลิก 15 นาที
 
     if (currentMinutes >= startM && currentMinutes <= endM && s.isClosed !== 1) {
       return {
@@ -510,23 +510,20 @@ export async function resolveClubActiveSession(clubId: string): Promise<{
     }
   }
 
-  // ถ้ารอบซ้อมวันนี้มีอยู่แล้วและยังไม่ปิด ให้ส่งรอบนั้น
-  if (todaySessions.length > 0 && todaySessions[0].isClosed !== 1) {
-    const s = todaySessions[0];
+  // 2. หากยังไม่ถึงเวลา หรือรอบก่อนหน้าปิดไปแล้ว ให้ตรวจสอบว่ามีรอบถัดไปของวันนี้หรือไม่
+  const upcomingToday = todaySessions
+    .filter((s) => s.isClosed !== 1)
+    .sort((a, b) => a.startTime.localeCompare(b.startTime))[0];
+
+  if (upcomingToday) {
     return {
-      activeSession: {
-        id: s.id,
-        title: s.title,
-        date: s.date,
-        startTime: s.startTime,
-        endTime: s.endTime,
-        isClosed: s.isClosed ?? 0,
-      },
+      activeSession: null,
       clubName: club.name,
+      nextScheduleInfo: `รอบถัดไปของวันนี้: "${upcomingToday.title}" เวลา ${upcomingToday.startTime} - ${upcomingToday.endTime} น. (ระบบจะเปิดให้เช็คชื่อ 30 นาทีก่อนเริ่มซ้อม)`,
     };
   }
 
-  // 2. ดึงข้อมูลรอบถัดไปเพื่อแจ้งผู้ใช้
+  // 3. ดึงข้อมูลตารางซ้อมประจำเพื่อแจ้งผู้ใช้
   const [schedule] = await db
     .select()
     .from(recurringSchedules)
