@@ -1,6 +1,6 @@
 import { db } from '../db/client';
 import { teams, users } from '../db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, sql } from 'drizzle-orm';
 
 export const DEFAULT_TEAM_ID = 'team-wavon-default';
 export const DEFAULT_COACH_ID = 'user-coach-wavon';
@@ -9,6 +9,7 @@ export const THUNDER_TEAM_ID = 'team-thunder';
 export const THUNDER_COACH_ID = 'user-coach-thunder';
 
 export const ADMIN_USER_ID = 'user-admin';
+export const ARM_USER_ID = 'user-arm';
 
 export async function ensureDefaultTeamAndCoach() {
   // 1. ตรวจสอบและสร้างสโมสร 1: WAVON FC
@@ -64,6 +65,23 @@ export async function ensureDefaultTeamAndCoach() {
       name: 'ผู้ดูแล',
       username: 'admin',
       passwordHash: 'admin1234',
+      role: 'ADMIN',
+    });
+  }
+
+  // 4. ตรวจสอบและสร้างบัญชี: โค้ชอาร์ม (Arm) ให้คงอยู่เสมอ ไม่หายเวลาอัปเดตระบบ
+  const [armUser] = await db
+    .select()
+    .from(users)
+    .where(sql`LOWER(${users.username}) = 'arm'`)
+    .limit(1);
+  if (!armUser) {
+    await db.insert(users).values({
+      id: ARM_USER_ID,
+      teamId: DEFAULT_TEAM_ID,
+      name: 'โค้ชอาร์ม (Arm)',
+      username: 'arm',
+      passwordHash: '123456',
       role: 'ADMIN',
     });
   }

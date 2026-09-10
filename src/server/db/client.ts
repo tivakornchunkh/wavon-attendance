@@ -2,12 +2,49 @@ import Database from 'better-sqlite3';
 import { drizzle } from 'drizzle-orm/better-sqlite3';
 import * as schema from './schema';
 import path from 'path';
+import fs from 'fs';
 
-const dbPath = process.env.DATABASE_URL || path.join(process.cwd(), 'sqlite.db');
+function resolveDbPath(): string {
+  if (process.env.DATABASE_URL) {
+    return process.env.DATABASE_URL;
+  }
+  if (process.env.DB_PATH) {
+    return process.env.DB_PATH;
+  }
+  // Render persistent disk standard mount directories (/var/data or /data)
+  if (fs.existsSync('/var/data')) {
+    const renderDiskDb = '/var/data/sqlite.db';
+    const localDb = path.join(process.cwd(), 'sqlite.db');
+    if (!fs.existsSync(renderDiskDb) && fs.existsSync(localDb)) {
+      try {
+        fs.copyFileSync(localDb, renderDiskDb);
+      } catch (err) {
+        console.error('Failed to copy initial sqlite.db to /var/data:', err);
+      }
+    }
+    return renderDiskDb;
+  }
+  if (fs.existsSync('/data')) {
+    const dataDiskDb = '/data/sqlite.db';
+    const localDb = path.join(process.cwd(), 'sqlite.db');
+    if (!fs.existsSync(dataDiskDb) && fs.existsSync(localDb)) {
+      try {
+        fs.copyFileSync(localDb, dataDiskDb);
+      } catch (err) {
+        console.error('Failed to copy initial sqlite.db to /data:', err);
+      }
+    }
+    return dataDiskDb;
+  }
+  return path.join(process.cwd(), 'sqlite.db');
+}
+
+const dbPath = resolveDbPath();
 
 export function createDbConnection(customPath?: string) {
   const sqlite = new Database(customPath || dbPath);
   sqlite.pragma('journal_mode = WAL');
+  sqlite.pragma('synchronous = NORMAL');
   sqlite.pragma('foreign_keys = ON');
 
   try {

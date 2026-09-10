@@ -15,7 +15,6 @@ export function LoginForm({ loginAction }: LoginFormProps) {
   const [errorField, setErrorField] = useState<'username' | 'password' | 'general' | null>(null);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [showDemoAccounts, setShowDemoAccounts] = useState(false);
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -50,13 +49,6 @@ export function LoginForm({ loginAction }: LoginFormProps) {
         }
       }
     });
-  };
-
-  const handleFillDemo = (demoUser: string, demoPass: string) => {
-    setUsername(demoUser);
-    setPassword(demoPass);
-    setErrorMessage(null);
-    setErrorField(null);
   };
 
   return (
@@ -197,60 +189,6 @@ export function LoginForm({ loginAction }: LoginFormProps) {
           )}
         </button>
       </form>
-
-      {/* Demo Accounts Quick-Fill Helper Accordion */}
-      <div className="mt-4 pt-3 border-t border-zinc-100">
-        <button
-          type="button"
-          onClick={() => setShowDemoAccounts(!showDemoAccounts)}
-          className="w-full text-left flex items-center justify-between text-[11px] font-bold text-zinc-500 hover:text-zinc-800 transition py-1"
-        >
-          <span className="flex items-center gap-1.5">
-            <span>🔑</span>
-            <span>ดูรายชื่อบัญชีทดสอบระบบ (Demo Accounts)</span>
-          </span>
-          <span>{showDemoAccounts ? '▲' : '▼'}</span>
-        </button>
-
-        {showDemoAccounts && (
-          <div className="mt-2.5 p-3 bg-zinc-50 border border-zinc-200 rounded-xl space-y-2 text-[11px] animate-fade-in">
-            <p className="text-[10px] uppercase font-bold text-zinc-400 tracking-wider">
-              แตะเพื่อกรอกข้อมูลทดสอบอัตโนมัติ (1-Click Auto-Fill):
-            </p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 pt-1">
-              <button
-                type="button"
-                onClick={() => handleFillDemo('coach_wavon', 'pass1234')}
-                className="p-2 rounded-lg bg-white border border-zinc-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition"
-              >
-                <div className="font-bold text-zinc-900">WAVON FC</div>
-                <div className="text-[10px] text-zinc-500 font-mono">coach_wavon</div>
-                <div className="text-[9px] text-emerald-600 font-semibold mt-0.5">pass1234</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFillDemo('coach_thunder', 'pass1234')}
-                className="p-2 rounded-lg bg-white border border-zinc-200 hover:border-emerald-400 hover:bg-emerald-50/40 text-left transition"
-              >
-                <div className="font-bold text-zinc-900">THUNDER CLUB</div>
-                <div className="text-[10px] text-zinc-500 font-mono">coach_thunder</div>
-                <div className="text-[9px] text-emerald-600 font-semibold mt-0.5">pass1234</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleFillDemo('admin', 'admin1234')}
-                className="p-2 rounded-lg bg-white border border-zinc-200 hover:border-purple-400 hover:bg-purple-50/40 text-left transition"
-              >
-                <div className="font-bold text-zinc-900">ผู้ดูแล (Admin)</div>
-                <div className="text-[10px] text-zinc-500 font-mono">admin</div>
-                <div className="text-[9px] text-purple-600 font-semibold mt-0.5">admin1234</div>
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
     </>
   );
 }
