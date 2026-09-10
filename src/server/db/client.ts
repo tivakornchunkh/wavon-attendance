@@ -1,6 +1,6 @@
 import Database from 'better-sqlite3';
-import { drizzle as drizzleBetterSqlite } from 'drizzle-orm/better-sqlite3';
-import { createClient } from '@libsql/client';
+import { drizzle as drizzleBetterSqlite, BetterSQLite3Database } from 'drizzle-orm/better-sqlite3';
+import { createClient } from '@libsql/client/web';
 import { drizzle as drizzleLibsql } from 'drizzle-orm/libsql';
 import * as schema from './schema';
 import path from 'path';
@@ -127,7 +127,7 @@ export function createDbConnection(customPath?: string) {
         console.error('Remote DB table initialization check:', err);
       });
 
-    return drizzleLibsql(client, { schema }) as any;
+    return drizzleLibsql(client, { schema }) as unknown as BetterSQLite3Database<typeof schema>;
   }
 
   const dbPath = customPath || resolveDbPath();
