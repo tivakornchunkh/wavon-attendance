@@ -128,10 +128,10 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
                 ดูแลภาพรวมระบบทั้งหมด เขียนโค้ดหลังบ้าน วางฐานข้อมูล และคุมความปลอดภัยให้พร้อมใช้งานจริง
               </p>
 
-              {/* Catchphrase / Quote */}
+              {/* Key Focus Area */}
               <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-zinc-950/80 border border-emerald-500/30 text-emerald-300 text-[11px] font-medium shadow-inner">
-                <span>💬</span>
-                <span className="italic font-mono">"นั่งเขียนแทบชัก เธอไม่รักแทบช็อค 💔💻"</span>
+                <span>⚙️</span>
+                <span className="font-mono"><strong className="text-emerald-400 font-semibold">Key Focus:</strong> System Architecture & Cloud Database Sync</span>
               </div>
 
               {/* Social Channels */}
@@ -227,8 +227,8 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
               </p>
 
               <div className="mb-3 px-2.5 py-1 rounded-xl bg-zinc-950/80 border border-cyan-500/30 text-cyan-300 text-[10px] font-medium flex items-center gap-1.5 shadow-inner">
-                <span>💬</span>
-                <span className="italic font-mono">"ถึงผมจะหล่อไม่มาก แต่ผมมีท่ายากเยอะ 🤸‍♂️🔞😏"</span>
+                <span>💻</span>
+                <span className="font-mono"><strong className="text-cyan-400 font-semibold">Key Focus:</strong> Modern UI & Interactive Components</span>
               </div>
             </div>
 
@@ -305,8 +305,8 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
               </p>
 
               <div className="mb-3 px-2.5 py-1 rounded-xl bg-zinc-950/80 border border-amber-500/30 text-amber-300 text-[10px] font-medium flex items-center gap-1.5 shadow-inner">
-                <span>💬</span>
-                <span className="italic font-mono">"แคปบัคส่งไว... แต่แชทส่งไปเธอไม่อ่าน 📸👻"</span>
+                <span>🎯</span>
+                <span className="font-mono"><strong className="text-amber-400 font-semibold">Key Focus:</strong> Real-world Quality Assurance & Field Testing</span>
               </div>
             </div>
 

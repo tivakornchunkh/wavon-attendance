@@ -17,7 +17,8 @@ interface TeamMemberIntro {
   nickname: string;
   role: string;
   badge: string;
-  quote: string;
+  focusIcon: string;
+  focusArea: string;
   hudCode: string;
   avatar: string;
   colorScheme: {
@@ -39,7 +40,8 @@ const TEAM_MEMBERS: TeamMemberIntro[] = [
     nickname: 'Arm',
     role: 'Founder & Lead Software Architect',
     badge: '★ PROJECT LEAD & ARCHITECT',
-    quote: 'นั่งเขียนแทบชัก เธอไม่รักแทบช็อค 💔💻',
+    focusIcon: '⚙️',
+    focusArea: 'System Architecture & Cloud Database Sync',
     hudCode: 'SYS_ARCH // 01',
     avatar: 'https://github.com/tivakornchunkh.png',
     colorScheme: {
@@ -59,7 +61,8 @@ const TEAM_MEMBERS: TeamMemberIntro[] = [
     nickname: 'Aung Pao',
     role: 'Assistant Software Developer',
     badge: '💻 ASSISTANT DEVELOPER',
-    quote: 'ถึงผมจะหล่อไม่มาก แต่ผมมีท่ายากเยอะ 🤸‍♂️🔞😏',
+    focusIcon: '💻',
+    focusArea: 'Modern UI & Interactive Components',
     hudCode: 'CORE_DEV // 02',
     avatar: '/team/aungpao.png',
     colorScheme: {
@@ -79,7 +82,8 @@ const TEAM_MEMBERS: TeamMemberIntro[] = [
     nickname: 'Satang',
     role: 'Manual QA Tester',
     badge: '🎯 MANUAL QA TESTER',
-    quote: 'แคปบัคส่งไว... แต่แชทส่งไปเธอไม่อ่าน 📸👻',
+    focusIcon: '🎯',
+    focusArea: 'Real-world Quality Assurance & Field Testing',
     hudCode: 'QA_FIELD // 03',
     avatar: '/team/satang.jpg',
     colorScheme: {
@@ -106,7 +110,7 @@ export default function CreditsIntroAnimation({ onComplete }: CreditsIntroAnimat
   const [stage, setStage] = useState<number>(0);
   const [revealed, setRevealed] = useState<boolean>(false);
   const [shockwave, setShockwave] = useState<boolean>(false);
-  const [typedQuote, setTypedQuote] = useState<string>('');
+  const [typedFocus, setTypedFocus] = useState<string>('');
   const [soundEnabled, setSoundEnabled] = useState<boolean>(true);
 
   const soundRef = useRef<boolean>(true);
@@ -138,18 +142,18 @@ export default function CreditsIntroAnimation({ onComplete }: CreditsIntroAnimat
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [handleSkip]);
 
-  // Helper for starting typewriter effect on a quote
+  // Helper for starting typewriter effect on key focus area
   const startTypewriter = useCallback((fullText: string) => {
-    setTypedQuote('');
+    setTypedFocus('');
     intervalRefs.current.forEach(clearInterval);
     let currIdx = 0;
     const interval = setInterval(() => {
       currIdx += 1;
-      setTypedQuote(fullText.slice(0, currIdx));
+      setTypedFocus(fullText.slice(0, currIdx));
       if (currIdx >= fullText.length) {
         clearInterval(interval);
       }
-    }, 32);
+    }, 30);
     intervalRefs.current.push(interval);
   }, []);
 
@@ -178,7 +182,7 @@ export default function CreditsIntroAnimation({ onComplete }: CreditsIntroAnimat
 
       // Reveal photo at 150ms and start typewriter at 280ms
       const t1Rev = setTimeout(() => setRevealed(true), 150);
-      const t1Type = setTimeout(() => startTypewriter(TEAM_MEMBERS[0].quote), 300);
+      const t1Type = setTimeout(() => startTypewriter(TEAM_MEMBERS[0].focusArea), 300);
       timerRefs.current.push(t1Sw, t1Rev, t1Type);
     }, 400);
 
@@ -191,7 +195,7 @@ export default function CreditsIntroAnimation({ onComplete }: CreditsIntroAnimat
 
       const t2Sw = setTimeout(() => setShockwave(false), 700);
       const t2Rev = setTimeout(() => setRevealed(true), 150);
-      const t2Type = setTimeout(() => startTypewriter(TEAM_MEMBERS[1].quote), 300);
+      const t2Type = setTimeout(() => startTypewriter(TEAM_MEMBERS[1].focusArea), 300);
       timerRefs.current.push(t2Sw, t2Rev, t2Type);
     }, 2600);
 
@@ -204,7 +208,7 @@ export default function CreditsIntroAnimation({ onComplete }: CreditsIntroAnimat
 
       const t3Sw = setTimeout(() => setShockwave(false), 700);
       const t3Rev = setTimeout(() => setRevealed(true), 150);
-      const t3Type = setTimeout(() => startTypewriter(TEAM_MEMBERS[2].quote), 300);
+      const t3Type = setTimeout(() => startTypewriter(TEAM_MEMBERS[2].focusArea), 300);
       timerRefs.current.push(t3Sw, t3Rev, t3Type);
     }, 4800);
 
@@ -469,13 +473,21 @@ export default function CreditsIntroAnimation({ onComplete }: CreditsIntroAnimat
               </p>
             </div>
 
-            {/* Frosted Glass Neon Quote Box with Typewriter Effect */}
+            {/* Frosted Glass Neon Key Focus Area Box with Typewriter Effect */}
             <div
-              className={`mt-3 w-full max-w-sm px-4 py-2.5 rounded-2xl bg-zinc-950/80 backdrop-blur-md border ${activeMember.colorScheme.boxBorder} ${activeMember.colorScheme.boxGlow} flex items-center justify-center gap-2 min-h-[46px] shadow-lg`}
+              className={`mt-3 w-full max-w-sm px-4 py-2.5 rounded-2xl bg-zinc-950/80 backdrop-blur-md border ${activeMember.colorScheme.boxBorder} ${activeMember.colorScheme.boxGlow} flex flex-col items-center justify-center gap-1 min-h-[52px] shadow-lg`}
             >
-              <span className="text-sm shrink-0">💬</span>
-              <p className="text-xs font-mono font-medium text-zinc-100 leading-snug">
-                <span>"{typedQuote}"</span>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs">{activeMember.focusIcon}</span>
+                <span
+                  className="text-[9.5px] font-mono font-bold uppercase tracking-wider"
+                  style={{ color: activeMember.colorScheme.accent }}
+                >
+                  KEY FOCUS AREA
+                </span>
+              </div>
+              <p className="text-xs font-mono font-medium text-zinc-100 leading-snug text-center">
+                <span>{typedFocus}</span>
                 <span
                   className="inline-block w-1.5 h-3.5 ml-1 align-middle animate-pulse"
                   style={{ backgroundColor: activeMember.colorScheme.accent }}
