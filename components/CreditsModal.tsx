@@ -214,7 +214,7 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
 
               <div className="mb-3 px-2.5 py-1 rounded-xl bg-zinc-950/80 border border-cyan-500/30 text-cyan-300 text-[10px] font-medium flex items-center gap-1.5 shadow-inner">
                 <span>💬</span>
-                <span className="italic font-mono">"งานเสร็จตามบรีฟ แต่พี่อาร์มสั่งแก้รอบที่แปด 😭"</span>
+                <span className="italic font-mono">"ถึงผมจะหล่อไม่มาก แต่ผมมีท่ายากเยอะ 🤸‍♂️🔞😏"</span>
               </div>
             </div>
 
@@ -292,7 +292,7 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
 
               <div className="mb-3 px-2.5 py-1 rounded-xl bg-zinc-950/80 border border-amber-500/30 text-amber-300 text-[10px] font-medium flex items-center gap-1.5 shadow-inner">
                 <span>💬</span>
-                <span className="italic font-mono">"มีหน้าที่กดมั่วจนเจอบัค แล้วแคปส่งไปปลุกพี่อาร์มตอนตีสอง 📸"</span>
+                <span className="italic font-mono">"แคปบัคส่งไว... แต่แชทส่งไปเธอไม่อ่าน 📸👻"</span>
               </div>
             </div>
 
