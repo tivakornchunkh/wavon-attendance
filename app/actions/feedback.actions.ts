@@ -8,6 +8,24 @@ import crypto from 'crypto';
 
 const feedbackRepo = new FeedbackRepository(db);
 
+// BUG-13: In-memory Rate Limiting ป้องกันการส่งสแปมซ้ำๆ
+const feedbackRateLimitMap = new Map<string, number>();
+
+function checkRateLimit(identifier: string, cooldownMs = 10000): boolean {
+  const now = Date.now();
+  const lastTime = feedbackRateLimitMap.get(identifier);
+  if (lastTime && now - lastTime < cooldownMs) {
+    return false; // ถูกจำกัดสิทธิ์ (rate limited)
+  }
+  feedbackRateLimitMap.set(identifier, now);
+  if (feedbackRateLimitMap.size > 500) {
+    for (const [key, ts] of feedbackRateLimitMap.entries()) {
+      if (now - ts > 60000) feedbackRateLimitMap.delete(key);
+    }
+  }
+  return true; // อนุญาตให้ส่งได้
+}
+
 export async function submitFeedbackAction(data: {
   category: 'BUG' | 'FEATURE' | 'PERFORMANCE' | 'OTHER';
   title: string;
@@ -31,6 +49,15 @@ export async function submitFeedbackAction(data: {
       }
     } catch {
       // User might be public or not logged in
+    }
+
+    // ตรวจสอบ Rate Limit (10 วินาทีต่อผู้ใช้หรือช่องทางติดต่อ)
+    const rateLimitKey = userId || data.userContact?.trim() || data.title.trim().slice(0, 20);
+    if (!checkRateLimit(rateLimitKey, 10000)) {
+      return {
+        success: false,
+        error: 'ท่านส่งข้อเสนอแนะเร็วเกินไป กรุณารอสักครู่ (10 วินาที) ก่อนส่งใหม่อีกครั้ง',
+      };
     }
 
     const id = `fb_${crypto.randomUUID()}`;

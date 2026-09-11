@@ -26,7 +26,7 @@ export async function clearDemoDataAction(): Promise<void> {
     .where(
       and(
         eq(trainingSessions.teamId, teamId),
-        or(like(trainingSessions.id, 'demo-%'), like(trainingSessions.id, 'sess-%'))
+        or(like(trainingSessions.id, 'demo-%'), like(trainingSessions.id, 'demo-sess-%'))
       )
     );
   const demoSessionIds = demoSessions.map((s) => s.id);

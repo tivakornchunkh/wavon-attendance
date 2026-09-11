@@ -32,7 +32,7 @@ export class SessionRepository {
     const results = await this.db
       .select()
       .from(trainingSessions)
-      .where(eq(trainingSessions.id, teamId))
+      .where(eq(trainingSessions.teamId, teamId))
       .orderBy(desc(trainingSessions.date), desc(trainingSessions.startTime))
       .limit(limit);
     return results as TrainingSession[];

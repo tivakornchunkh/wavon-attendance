@@ -5,10 +5,11 @@ import { revalidatePath } from 'next/cache';
 import { cookies } from 'next/headers';
 import { db } from '../../src/server/db/client';
 import { users, teams, athletes, trainingSessions, attendances } from '../../src/server/db/schema';
-import { eq, ne, and, sql } from 'drizzle-orm';
+import { eq, ne, and, sql, inArray } from 'drizzle-orm';
 import { setAuthSession, clearAuthSession, setActiveTeamSession, getCurrentSession, ACTIVE_TEAM_COOKIE } from '../../src/server/helpers/auth';
 import { ensureDefaultTeamAndCoach } from '../../src/server/helpers/default-team';
 import crypto from 'crypto';
+import bcrypt from 'bcryptjs';
 
 export interface AuthActionResult {
   success: boolean;
@@ -39,7 +40,7 @@ export async function quickLoginAction(username: string): Promise<AuthActionResu
       return { success: false, error: 'บัญชีผู้ดูแลระบบ (Admin) ต้องเข้าสู่ระบบด้วยรหัสผ่านเท่านั้น' };
     }
 
-    await setAuthSession(user.id);
+    await setAuthSession(user.id, user.role);
     return { success: true, redirectTo: '/' };
   } catch (err: unknown) {
     return { success: false, error: 'เกิดข้อผิดพลาดในการเข้าสู่ระบบด่วน' };
@@ -89,11 +90,22 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
       };
     }
 
-    // ตรวจสอบความถูกต้องของรหัสผ่าน
-    const isArm = user.username?.toLowerCase() === 'arm';
-    const isPasswordCorrect =
-      user.passwordHash === password ||
-      (isArm && (password === '123456' || password === 'pass1234' || password === 'admin1234'));
+    // ตรวจสอบความถูกต้องของรหัสผ่าน (รองรับ bcrypt hash + auto-migration จาก plaintext)
+    let isPasswordCorrect = false;
+    const isHashed = user.passwordHash.startsWith('$2a$') || user.passwordHash.startsWith('$2b$');
+
+    if (isHashed) {
+      // รหัสผ่านถูกเข้ารหัสแล้ว ใช้ bcrypt.compare
+      isPasswordCorrect = await bcrypt.compare(password, user.passwordHash);
+    } else {
+      // รหัสผ่านยังเป็น plaintext (จากเวอร์ชันเก่า) ให้เทียบตรงแล้ว auto-migrate
+      isPasswordCorrect = user.passwordHash === password;
+      if (isPasswordCorrect) {
+        // Auto-migration: อัปเกรดรหัสผ่านเป็น bcrypt hash อัตโนมัติ
+        const hashed = await bcrypt.hash(password, 10);
+        await db.update(users).set({ passwordHash: hashed }).where(eq(users.id, user.id));
+      }
+    }
 
     if (!isPasswordCorrect) {
       return {
@@ -103,7 +115,7 @@ export async function loginAction(formData: FormData): Promise<AuthActionResult>
       };
     }
 
-    await setAuthSession(user.id);
+    await setAuthSession(user.id, user.role);
 
     const targetUrl = user.role === 'ADMIN' ? '/admin' : '/';
     return {
@@ -177,13 +189,14 @@ export async function createClubAction(formData: FormData): Promise<void> {
     name: clubName,
   });
 
-  // 2. สร้างบัญชีคนเช็คชื่อประจำสโมสร
+  // 2. สร้างบัญชีคนเช็คชื่อประจำสโมสร (เข้ารหัสรหัสผ่านด้วย bcrypt)
+  const hashedPassword = await bcrypt.hash(password, 10);
   await db.insert(users).values({
     id: newUserId,
     teamId: newTeamId,
     name: coachName,
     username,
-    passwordHash: password,
+    passwordHash: hashedPassword,
     role: 'USER',
   });
 
@@ -218,11 +231,9 @@ export async function deleteClubAction(teamId: string, confirmationName: string)
     const teamSessions = await db.select().from(trainingSessions).where(eq(trainingSessions.teamId, teamId));
     const sessionIds = teamSessions.map((s) => s.id);
 
-    // 2. ลบ attendances
+    // 2. ลบ attendances (ใช้ batch delete แทน N+1 loop เพื่อประสิทธิภาพ)
     if (sessionIds.length > 0) {
-      for (const sId of sessionIds) {
-        await db.delete(attendances).where(eq(attendances.sessionId, sId));
-      }
+      await db.delete(attendances).where(inArray(attendances.sessionId, sessionIds));
     }
 
     // 3. ลบ trainingSessions
@@ -326,18 +337,19 @@ export async function registerAction(formData: FormData): Promise<RegisterAction
       name: clubName,
     });
 
-    // 2. สร้างบัญชีโค้ช
+    // 2. สร้างบัญชีโค้ช (เข้ารหัสรหัสผ่านด้วย bcrypt)
+    const hashedPw = await bcrypt.hash(password, 10);
     await db.insert(users).values({
       id: newUserId,
       teamId: newTeamId,
       name: coachName,
       username,
-      passwordHash: password,
+      passwordHash: hashedPw,
       role: 'COACH',
     });
 
     // 3. เข้าสู่ระบบทันที
-    await setAuthSession(newUserId);
+    await setAuthSession(newUserId, 'COACH');
     await setActiveTeamSession(newTeamId);
 
     // 4. ตั้งค่าให้เปิดคู่มือแนะนำการใช้งานอัตโนมัติสำหรับสโมสรใหม่

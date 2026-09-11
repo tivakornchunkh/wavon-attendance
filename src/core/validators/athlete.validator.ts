@@ -55,7 +55,13 @@ export interface ParsedRosterItem {
 export function parseRosterText(rawText: string): ParsedRosterItem[] {
   if (!rawText || !rawText.trim()) return [];
 
-  const lines = rawText.split(/\r?\n/);
+  // BUG-12: ลบอักขระล่องหน (Zero-width characters, BOM, Non-breaking space)
+  // ที่มักติดมาจากการ copy ตาราง Excel หรือแอปแชท
+  const sanitizedText = rawText
+    .replace(/[\u200B-\u200D\uFEFF]/g, '')
+    .replace(/[\u00A0\u3000]/g, ' ');
+
+  const lines = sanitizedText.split(/\r?\n/);
   const results: ParsedRosterItem[] = [];
 
   for (let line of lines) {

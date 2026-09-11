@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import QrCodeSvg from '../../../components/QrCodeSvg';
 
 interface QrCheckInModalProps {
@@ -35,12 +35,16 @@ export default function QrCheckInModal({
     }
   }, [sessionId]);
 
+  const copyTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const handleCopy = (url: string, type: 'pitch' | 'leave') => {
     if (!url) return;
     navigator.clipboard.writeText(url);
+    if (copyTimeoutRef.current) clearTimeout(copyTimeoutRef.current);
     setCopiedType(type);
-    setTimeout(() => {
+    copyTimeoutRef.current = setTimeout(() => {
       setCopiedType(null);
+      copyTimeoutRef.current = null;
     }, 3000);
   };
 

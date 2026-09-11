@@ -1,16 +1,38 @@
-# ⚽ WAVON Athlete Attendance System (v2.8)
+# ⚽ WAVON Athlete Attendance System (v2.8.1)
 
 > ระบบติดตามสถิติและการเช็คชื่อนักกีฬาสำหรับการฝึกซ้อมกีฬาและอคาเดมีระดับมืออาชีพ  
 > **Designed & Engineered for Sports Academies, Clubs & Training Facilities**
 
-![Version](https://img.shields.io/badge/version-2.8.0-emerald)
+![Version](https://img.shields.io/badge/version-2.8.1-emerald)
 ![Framework](https://img.shields.io/badge/Next.js-16.3-black)
 ![Database](https://img.shields.io/badge/SQLite-Drizzle--ORM-blue)
 ![Tests](https://img.shields.io/badge/Vitest-Passed-brightgreen)
 
 ---
 
-## 🚀 อัปเดตใหญ่ประจำเวอร์ชัน 2.8.0 (What's New in v2.8.0)
+## 🛡️ อัปเดตแพตช์ประจำเวอร์ชัน 2.8.1 (What's New in v2.8.1)
+
+### 1. 🔒 ยกระดับความปลอดภัยระบบและรหัสผ่าน (Security Hardening)
+- **Bcrypt Password Hashing & Auto-Migration:** รหัสผ่านทุกบัญชีจะถูกเข้ารหัสผ่านอัลกอริทึม `bcrypt` อย่างปลอดภัย พร้อมระบบตรวจจับและอัปเกรดรหัสผ่านเดิม (Auto-migration) ให้เป็น Hash ทันทีที่ล็อกอินครั้งแรก
+- **HMAC-SHA256 Signed Cookies:** คุกกี้เซสชัน (`wavon_user_id`, `wavon_user_role`) มีการเซ็นลายเซ็นกำกับด้วย HMAC ป้องกันการปลอมแปลงคุกกี้ (Cookie Tampering) และป้องกันการยกระดับสิทธิ์เข้าหน้า `/admin`
+- **CSRF & Session Hardening:** เพิ่มแอตทริบิวต์ `sameSite: 'lax'` ให้กับคุกกี้ทั้งหมดในระบบ ป้องกันการโจมตีแบบ Cross-site Request Forgery
+
+### 2. ⚡ ป้องกัน Race Condition และความเสถียรข้อมูล (High Concurrency & Data Integrity)
+- **Database Transaction ใน Batch Check-In:** การสแกน QR Code และบันทึกประวัติการเช็คชื่อถูกห่อหุ้มใน Transaction อย่างสมบูรณ์ ป้องกันข้อผิดพลาดตอนนักกีฬาหลายสิบคนสแกนพร้อมกันริมสนาม
+- **Pause Auto-Refresh During Submission:** หน้าเช็คชื่อจะหยุดพัก Timer รีเฟรชอัตโนมัติ 10 วินาทีชั่วขณะที่มีการกดเช็คชื่อ ป้องกันการดึงข้อมูลเดิมมาทับสถานะ Optimistic UI
+- **Safe Demo Data Deletion:** ปรับเงื่อนไขคำสั่งล้างข้อมูลทดสอบ (Clear Demo Data) ไม่ให้ลบรอบซ้อมจริงที่ระบบสร้างให้อัตโนมัติ (`sess-%`)
+- **Query Column Fix:** แก้ไขคำสั่งค้นหารอบซ้อมของทีมใน Repository ให้ถูกต้องตรงตาม Schema (`teamId`)
+
+### 3. 🎯 ยกระดับ UX/UI และประสิทธิภาพ (Performance & Mobile Accessibility)
+- **Batch Delete Club:** ปรับปรุงคำสั่งลบสโมสรให้ลบข้อมูลแบบ Batch `inArray` แทน N+1 Loop ลดเวลาการทำงานและป้องกันเซิร์ฟเวอร์ค้าง
+- **Mobile Touch Targets (WCAG 2.1):** ขยายขนาดปุ่มทางลัดบน Mobile Header ให้ได้มาตรฐานความกว้างอย่างน้อย 44x44px เพื่อการแตะสัมผัสที่แม่นยำ
+- **Managed Toast & Copy Timeouts:** จัดการตัวจับเวลาซ่อนข้อความแจ้งเตือนด้วย React Ref เคลียร์ตัวจับเวลาเดิมเมื่อกดย้ำ ป้องกันข้อความกระพริบหายเร็วผิดปกติ
+- **Invisible Character Stripper:** ปรับปรุงตัวประมวลผลรายชื่อนักกีฬา (Smart Roster Parser) ให้ลบอักขระล่องหน (Zero-width characters, BOM, Non-breaking space) อัตโนมัติเมื่อวางข้อความจาก Excel
+- **Feedback Rate Limiting:** เพิ่มระบบหน่วงเวลาป้องกันสแปมฟอร์มส่งข้อเสนอแนะ 10 วินาที
+
+---
+
+## 🚀 ประวัติเวอร์ชัน 2.8.0 (What's New in v2.8.0)
 
 ### 1. 🌟 ปรับโฉมหน้าเข้าสู่ระบบสไตล์ Minimalist Clean Light (Apple & Linear Inspired)
 - **ดีไซน์ขาวคลีน พรีเมียม สบายตา:** พื้นหลังโทนสว่างผสมแสงสะท้อนนีออนมรกต (Ambient Glow) พร้อมการ์ดกระจกแก้วขอบมน `rounded-3xl`

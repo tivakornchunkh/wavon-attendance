@@ -131,6 +131,7 @@ export default function RegisterForm() {
             <input
               type="text"
               required
+              minLength={3}
               value={username}
               autoComplete="username"
               onChange={(e) => setUsername(e.target.value)}
@@ -153,6 +154,7 @@ export default function RegisterForm() {
               <input
                 type={showPassword ? 'text' : 'password'}
                 required
+                minLength={4}
                 value={password}
                 autoComplete="new-password"
                 onChange={(e) => setPassword(e.target.value)}
@@ -188,6 +190,7 @@ export default function RegisterForm() {
             <input
               type={showPassword ? 'text' : 'password'}
               required
+              minLength={4}
               value={confirmPassword}
               autoComplete="new-password"
               onChange={(e) => setConfirmPassword(e.target.value)}

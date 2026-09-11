@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useTransition } from 'react';
+import React, { useState, useEffect, useMemo, useTransition, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { selfCheckInAction } from '../../actions/session.actions';
 import { formatUserFriendlyError } from '../../../src/lib/error-formatter';
@@ -85,20 +85,21 @@ export default function AthleteCheckInView({
   const router = useRouter();
 
   // Smart Mobile Auto-Refresh (Visibility change, Focus, and 10s interval)
+  // BUG-06: หยุดรีเฟรชอัตโนมัติขณะที่กำลังส่งข้อมูล (isPending) เพื่อไม่ให้ชน Optimistic UI
   useEffect(() => {
     const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !isPending) {
         router.refresh();
       }
     };
     const handleFocus = () => {
-      router.refresh();
+      if (!isPending) router.refresh();
     };
     document.addEventListener('visibilitychange', handleVisibilityChange);
     window.addEventListener('focus', handleFocus);
 
     const timer = setInterval(() => {
-      if (document.visibilityState === 'visible') {
+      if (document.visibilityState === 'visible' && !isPending) {
         router.refresh();
       }
     }, 10000);
@@ -108,7 +109,7 @@ export default function AthleteCheckInView({
       window.removeEventListener('focus', handleFocus);
       clearInterval(timer);
     };
-  }, [router]);
+  }, [router, isPending]);
 
   // Synchronize attendances when revalidated from server
   useEffect(() => {
@@ -153,10 +154,14 @@ export default function AthleteCheckInView({
 
   const quickLeaveOptions = ['ลาป่วย', 'ติดเรียน / ติดสอบ', 'ติดธุระครอบครัว', 'บาดเจ็บจากการแข่งขัน', 'อื่นๆ'];
 
+  const toastTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showToast = (text: string, type: 'success' | 'error' = 'success') => {
+    // BUG-09: เคลียร์ timeout เดิมก่อนตั้งตัวใหม่ ป้องกันข้อความกระพริบหายเร็วเกินไป
+    if (toastTimeoutRef.current) clearTimeout(toastTimeoutRef.current);
     setToastMessage({ text, type });
-    setTimeout(() => {
+    toastTimeoutRef.current = setTimeout(() => {
       setToastMessage(null);
+      toastTimeoutRef.current = null;
     }, 4500);
   };
 

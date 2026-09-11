@@ -33,69 +33,140 @@ export class AttendanceRepository {
     checkedBy: string,
     records: { athleteId: string; status: AttendanceStatus; notes?: string | null }[]
   ): Promise<{ inserted: number; updated: number; logsCreated: number }> {
-    let inserted = 0;
-    let updated = 0;
-    let logsCreated = 0;
+    // BUG-05: ใช้ Transaction เพื่อให้การบันทึกหรืออัปเดตสถานะเช็คชื่อเป็น Atomic
+    // ป้องกัน Race condition เมื่อมีนักกีฬาสแกน QR พร้อมกันหลายคน
+    try {
+      // Better-sqlite3 ต้องการ synchronous transaction callback
+      return (this.db as any).transaction((tx: any) => {
+        let inserted = 0;
+        let updated = 0;
+        let logsCreated = 0;
 
-    for (const record of records) {
-      const existing = await this.findBySessionAndAthlete(sessionId, record.athleteId);
+        for (const record of records) {
+          const results = tx
+            .select()
+            .from(attendances)
+            .where(and(eq(attendances.sessionId, sessionId), eq(attendances.athleteId, record.athleteId)))
+            .all();
+          const existing = results[0];
 
-      if (existing) {
-        // มีข้อมูลอยู่แล้ว -> ตรวจสอบว่าสถานะเปลี่ยนหรือไม่
-        if (existing.status !== record.status) {
-          // 1. Update attendance status
-          await this.db
-            .update(attendances)
-            .set({
-              status: record.status,
-              notes: record.notes !== undefined ? record.notes : existing.notes,
-              checkedBy,
-              checkedAt: new Date().toISOString(),
-            })
-            .where(eq(attendances.id, existing.id));
+          if (existing) {
+            if (existing.status !== record.status) {
+              tx.update(attendances)
+                .set({
+                  status: record.status,
+                  notes: record.notes !== undefined ? record.notes : existing.notes,
+                  checkedBy,
+                  checkedAt: new Date().toISOString(),
+                })
+                .where(eq(attendances.id, existing.id))
+                .run();
 
-          // 2. บันทึก Audit Log เฉพาะเมื่อสถานะเปลี่ยน (ตาม Q8: B, Q11: A)
-          await this.db.insert(attendanceLogs).values({
+              tx.insert(attendanceLogs)
+                .values({
+                  id: crypto.randomUUID(),
+                  attendanceId: existing.id,
+                  sessionId,
+                  athleteId: record.athleteId,
+                  previousStatus: existing.status,
+                  newStatus: record.status,
+                  changedBy: checkedBy,
+                  changedAt: new Date().toISOString(),
+                  reason: record.notes || 'Batch attendance update',
+                })
+                .run();
+
+              updated++;
+              logsCreated++;
+            } else if (record.notes !== undefined && record.notes !== existing.notes) {
+              tx.update(attendances)
+                .set({
+                  notes: record.notes,
+                  checkedBy,
+                })
+                .where(eq(attendances.id, existing.id))
+                .run();
+              updated++;
+            }
+          } else {
+            tx.insert(attendances)
+              .values({
+                id: crypto.randomUUID(),
+                sessionId,
+                athleteId: record.athleteId,
+                status: record.status,
+                checkedBy,
+                checkedAt: new Date().toISOString(),
+                notes: record.notes || null,
+              })
+              .run();
+            inserted++;
+          }
+        }
+
+        return { inserted, updated, logsCreated };
+      });
+    } catch {
+      // Fallback สำหรับ remote libsql หรือ async driver ที่ไม่รองรับ sync transaction
+      let inserted = 0;
+      let updated = 0;
+      let logsCreated = 0;
+
+      for (const record of records) {
+        const existing = await this.findBySessionAndAthlete(sessionId, record.athleteId);
+
+        if (existing) {
+          if (existing.status !== record.status) {
+            await this.db
+              .update(attendances)
+              .set({
+                status: record.status,
+                notes: record.notes !== undefined ? record.notes : existing.notes,
+                checkedBy,
+                checkedAt: new Date().toISOString(),
+              })
+              .where(eq(attendances.id, existing.id));
+
+            await this.db.insert(attendanceLogs).values({
+              id: crypto.randomUUID(),
+              attendanceId: existing.id,
+              sessionId,
+              athleteId: record.athleteId,
+              previousStatus: existing.status,
+              newStatus: record.status,
+              changedBy: checkedBy,
+              changedAt: new Date().toISOString(),
+              reason: record.notes || 'Batch attendance update',
+            });
+
+            updated++;
+            logsCreated++;
+          } else if (record.notes !== undefined && record.notes !== existing.notes) {
+            await this.db
+              .update(attendances)
+              .set({
+                notes: record.notes,
+                checkedBy,
+              })
+              .where(eq(attendances.id, existing.id));
+            updated++;
+          }
+        } else {
+          await this.db.insert(attendances).values({
             id: crypto.randomUUID(),
-            attendanceId: existing.id,
             sessionId,
             athleteId: record.athleteId,
-            previousStatus: existing.status,
-            newStatus: record.status,
-            changedBy: checkedBy,
-            changedAt: new Date().toISOString(),
-            reason: record.notes || 'Batch attendance update',
+            status: record.status,
+            checkedBy,
+            checkedAt: new Date().toISOString(),
+            notes: record.notes || null,
           });
-
-          updated++;
-          logsCreated++;
-        } else if (record.notes !== undefined && record.notes !== existing.notes) {
-          // สถานะเดิม แต่แก้นทึก
-          await this.db
-            .update(attendances)
-            .set({
-              notes: record.notes,
-              checkedBy,
-            })
-            .where(eq(attendances.id, existing.id));
-          updated++;
+          inserted++;
         }
-      } else {
-        // รายการใหม่ -> Insert
-        await this.db.insert(attendances).values({
-          id: crypto.randomUUID(),
-          sessionId,
-          athleteId: record.athleteId,
-          status: record.status,
-          checkedBy,
-          checkedAt: new Date().toISOString(),
-          notes: record.notes || null,
-        });
-        inserted++;
       }
-    }
 
-    return { inserted, updated, logsCreated };
+      return { inserted, updated, logsCreated };
+    }
   }
 
   /**

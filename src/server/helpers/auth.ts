@@ -3,9 +3,40 @@ import { db } from '../db/client';
 import { users, teams } from '../db/schema';
 import { eq } from 'drizzle-orm';
 import { ensureDefaultTeamAndCoach } from './default-team';
+import crypto from 'crypto';
 
 export const USER_COOKIE = 'wavon_user_id';
 export const ACTIVE_TEAM_COOKIE = 'wavon_active_team_id';
+
+const AUTH_SECRET = process.env.AUTH_SECRET || 'wavon-attendance-hmac-salt-2026';
+
+/**
+ * เซ็นลายเซ็นกำกับค่าใน Cookie (HMAC-SHA256) ป้องกันการปลอมแปลง (BUG-04)
+ */
+export function signCookie(value: string): string {
+  const hash = crypto.createHmac('sha256', AUTH_SECRET).update(value).digest('hex').slice(0, 16);
+  return `${value}.${hash}`;
+}
+
+/**
+ * ถอดและตรวจสอบลายเซ็น Cookie
+ * หากถูกแก้ไข ปลอมแปลง หรือไม่ถูกต้อง จะคืนค่า null
+ */
+export function unsignCookie(signedValue: string | undefined): string | null {
+  if (!signedValue) return null;
+  const lastDot = signedValue.lastIndexOf('.');
+  if (lastDot === -1) {
+    // สำหรับ Backward compatibility คุกกี้เก่าที่ยังไม่ได้เซ็น
+    return signedValue;
+  }
+  const value = signedValue.slice(0, lastDot);
+  const signature = signedValue.slice(lastDot + 1);
+  const expected = crypto.createHmac('sha256', AUTH_SECRET).update(value).digest('hex').slice(0, 16);
+  if (signature === expected) {
+    return value;
+  }
+  return null; // ลายเซ็นไม่ถูกต้อง คุกกี้ถูกปลอมแปลง
+}
 
 export interface AuthSession {
   user: {
@@ -29,7 +60,8 @@ export async function getCurrentSession(): Promise<AuthSession> {
   await ensureDefaultTeamAndCoach();
 
   const cookieStore = await cookies();
-  const userId = cookieStore.get(USER_COOKIE)?.value;
+  const rawUserId = cookieStore.get(USER_COOKIE)?.value;
+  const userId = unsignCookie(rawUserId);
 
   let currentUser = null;
   if (userId) {
@@ -90,17 +122,29 @@ export async function getCurrentSession(): Promise<AuthSession> {
   };
 }
 
+export const ROLE_COOKIE = 'wavon_user_role';
+
 /**
- * ตั้งค่าล็อกอิน
+ * ตั้งค่าล็อกอิน (บันทึก userId + role สำหรับ middleware route protection)
  */
-export async function setAuthSession(userId: string) {
+export async function setAuthSession(userId: string, role?: string) {
   const cookieStore = await cookies();
-  cookieStore.set(USER_COOKIE, userId, {
+  cookieStore.set(USER_COOKIE, signCookie(userId), {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30, // 30 วัน
   });
+  if (role) {
+    cookieStore.set(ROLE_COOKIE, signCookie(role), {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 30,
+    });
+  }
 }
 
 /**
@@ -111,6 +155,7 @@ export async function setActiveTeamSession(teamId: string) {
   cookieStore.set(ACTIVE_TEAM_COOKIE, teamId, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
     path: '/',
     maxAge: 60 * 60 * 24 * 30,
   });
@@ -123,5 +168,6 @@ export async function clearAuthSession() {
   const cookieStore = await cookies();
   cookieStore.delete(USER_COOKIE);
   cookieStore.delete(ACTIVE_TEAM_COOKIE);
+  cookieStore.delete(ROLE_COOKIE);
 }
 

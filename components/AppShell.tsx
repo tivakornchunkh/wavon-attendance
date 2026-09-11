@@ -51,6 +51,18 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
     };
   }, [isMobileMenuOpen]);
 
+  // BUG-16: ปิด drawer อัตโนมัติเมื่อหมุนจอเป็นแนวนอน (เข้า Desktop layout)
+  // เพื่อไม่ให้ overflow: hidden ค้างบน body
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [isMobileMenuOpen]);
+
   // Clean Standalone Layout for Login, Register, and Public Check-In Pages (No sidebars, headers, or navbars)
   if (pathname === '/login' || pathname === '/register' || pathname.startsWith('/checkin')) {
     return (
@@ -275,7 +287,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
             <button
               type="button"
               onClick={() => setShowCredits(true)}
-              className="w-9 h-9 rounded-xl bg-zinc-900 border border-zinc-800 text-amber-400 hover:text-amber-300 active:bg-zinc-800 flex items-center justify-center text-sm transition cursor-pointer shadow-2xs"
+              className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 text-amber-400 hover:text-amber-300 active:bg-zinc-800 flex items-center justify-center text-sm transition cursor-pointer shadow-2xs"
               title="ข้อมูลผู้พัฒนา (Credits)"
               aria-label="ข้อมูลผู้พัฒนา"
             >

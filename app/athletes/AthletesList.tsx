@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useTransition } from 'react';
 import Link from 'next/link';
 import { Athlete } from '../../src/core/domain/athlete';
 import { toggleAthleteStatusAction, deleteAthleteAction } from '../actions/athlete.actions';
@@ -18,7 +18,7 @@ export default function AthletesList({ initialAthletes }: AthletesListProps) {
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [athleteToDelete, setAthleteToDelete] = useState<Athlete | null>(null);
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const toggleSort = (field: SortField) => {
     if (sortField === field) {
@@ -262,23 +262,23 @@ export default function AthletesList({ initialAthletes }: AthletesListProps) {
               <button
                 type="button"
                 onClick={() => setAthleteToDelete(null)}
-                disabled={isDeleting}
+                disabled={isPending}
                 className="flex-1 py-2.5 rounded-xl border border-zinc-300 text-zinc-700 text-xs font-bold hover:bg-zinc-50 transition cursor-pointer min-h-[42px]"
               >
                 ยกเลิก
               </button>
               <button
                 type="button"
-                onClick={async () => {
-                  setIsDeleting(true);
-                  await deleteAthleteAction(athleteToDelete.id);
-                  setIsDeleting(false);
-                  setAthleteToDelete(null);
+                onClick={() => {
+                  startTransition(async () => {
+                    await deleteAthleteAction(athleteToDelete.id);
+                    setAthleteToDelete(null);
+                  });
                 }}
-                disabled={isDeleting}
+                disabled={isPending}
                 className="flex-1 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white text-xs font-black transition flex items-center justify-center gap-1.5 cursor-pointer min-h-[42px] disabled:opacity-50"
               >
-                {isDeleting ? (
+                {isPending ? (
                   <>
                     <span className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                     <span>กำลังลบ...</span>
