@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import WavonLogo from './WavonLogo';
 import { APP_VERSION, APP_RELEASE_NAME } from '../src/version';
+import CreditsIntroAnimation from './CreditsIntroAnimation';
 
 interface CreditsModalProps {
   isOpen: boolean;
@@ -10,6 +11,8 @@ interface CreditsModalProps {
 }
 
 export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
+  const [phase, setPhase] = useState<'intro' | 'modal'>('intro');
+
   const [armLoaded, setArmLoaded] = useState(false);
   const [armError, setArmError] = useState(false);
 
@@ -19,7 +22,18 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
   const [tangLoaded, setTangLoaded] = useState(false);
   const [tangError, setTangError] = useState(false);
 
+  // Reset to intro whenever the modal is opened
+  useEffect(() => {
+    if (isOpen) {
+      setPhase('intro');
+    }
+  }, [isOpen]);
+
   if (!isOpen) return null;
+
+  if (phase === 'intro') {
+    return <CreditsIntroAnimation onComplete={() => setPhase('modal')} />;
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
@@ -365,13 +379,23 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
           <p className="text-[9.5px] text-zinc-500">
             © 2026 WAVON Sports Management • Developed with pride by Tivakorn Chunkh, Bhumimekin Chaisuk-kosol & Pasit Junta
           </p>
-          <button
-            type="button"
-            onClick={onClose}
-            className="w-full py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-950 text-white font-bold text-xs transition cursor-pointer border border-zinc-800 shadow-sm"
-          >
-            ปิดหน้าต่างเครดิต
-          </button>
+          <div className="flex items-center gap-2 pt-1">
+            <button
+              type="button"
+              onClick={() => setPhase('intro')}
+              className="flex-1 py-2.5 rounded-xl bg-zinc-900/90 hover:bg-zinc-800 active:bg-zinc-950 text-emerald-400 hover:text-emerald-300 font-bold text-xs transition cursor-pointer border border-emerald-500/30 hover:border-emerald-500/50 shadow-sm flex items-center justify-center gap-1.5"
+            >
+              <span>🎬</span>
+              <span>ดูอนิเมชั่นเปิดตัวอีกครั้ง</span>
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 active:bg-zinc-950 text-zinc-300 hover:text-white font-bold text-xs transition cursor-pointer border border-zinc-800 shadow-sm"
+            >
+              ปิดหน้าต่างเครดิต
+            </button>
+          </div>
         </div>
       </div>
     </div>
