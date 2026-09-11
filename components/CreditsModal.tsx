@@ -60,7 +60,7 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
             ทีมผู้สร้างสรรค์ระบบ WAVON
           </h2>
           <p className="text-xs text-zinc-400 mt-1">
-            ขับเคลื่อนด้วยความมุ่งมั่นเพื่อยกระดับการจัดการฝึกซ้อมกีฬาและอคาเดมีสู่มาตรฐานสากล
+            สร้างและพัฒนาโดยทีมงานคนรุ่นใหม่ เพื่อระบบเช็คชื่อนักกีฬาที่ดีและใช้งานง่ายที่สุดในสนามจริง
           </p>
         </div>
 
@@ -110,9 +110,15 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
               <p className="text-xs text-emerald-400 font-semibold mt-0.5">
                 Founder & Lead Software Architect
               </p>
-              <p className="text-[11px] text-zinc-400 mt-1.5 leading-relaxed">
-                สถาปนิกผู้ออกแบบโครงสร้างระบบหลัก, สถาปัตยกรรม Next.js Full-Stack, ระบบฐานข้อมูล และความปลอดภัย
+              <p className="text-[11px] text-zinc-300 mt-1.5 leading-relaxed">
+                ดูแลภาพรวมระบบทั้งหมด เขียนโค้ดหลังบ้าน วางฐานข้อมูล และคุมความปลอดภัยให้พร้อมใช้งานจริง
               </p>
+
+              {/* Catchphrase / Quote */}
+              <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-xl bg-zinc-950/80 border border-emerald-500/30 text-emerald-300 text-[11px] font-medium shadow-inner">
+                <span>💬</span>
+                <span className="italic font-mono">"นั่งเขียนแทบชัก เธอไม่รักแทบช็อค 💔💻"</span>
+              </div>
 
               {/* Social Channels */}
               <div className="flex items-center justify-center sm:justify-start gap-2 mt-3 flex-wrap">
@@ -202,9 +208,14 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
                 </div>
               </div>
 
-              <p className="text-[10.5px] text-zinc-400 leading-relaxed mb-3">
-                ร่วมพัฒนาฟีเจอร์สำคัญ, ดูแลส่วนติดต่อผู้ใช้ (UI) และช่วยดูแลความเรียบร้อยของโค้ดในโปรเจกต์
+              <p className="text-[10.5px] text-zinc-300 leading-relaxed mb-2">
+                ร่วมพัฒนาฟีเจอร์สำคัญ ดูแลส่วนติดต่อผู้ใช้ (UI) และช่วยดูแลความเรียบร้อยของโค้ดในโปรเจกต์
               </p>
+
+              <div className="mb-3 px-2.5 py-1 rounded-xl bg-zinc-950/80 border border-cyan-500/30 text-cyan-300 text-[10px] font-medium flex items-center gap-1.5 shadow-inner">
+                <span>💬</span>
+                <span className="italic font-mono">"งานเสร็จตามบรีฟ แต่พี่อาร์มสั่งแก้รอบที่แปด 😭"</span>
+              </div>
             </div>
 
             {/* Socials */}
@@ -275,9 +286,14 @@ export default function CreditsModal({ isOpen, onClose }: CreditsModalProps) {
                 </div>
               </div>
 
-              <p className="text-[10.5px] text-zinc-400 leading-relaxed mb-3">
-                ตรวจสอบและทดสอบระบบด้วยมือ (Manual Testing), ค้นหาบัค, ทดสอบหน้างาน และรายงานเพื่อแก้ไขจุดบกพร่อง
+              <p className="text-[10.5px] text-zinc-300 leading-relaxed mb-2">
+                ตรวจสอบและทดสอบระบบด้วยมือ (Manual Testing) ค้นหาบัคหน้างานจริง และรายงานเพื่อแก้ไขจุดบกพร่อง
               </p>
+
+              <div className="mb-3 px-2.5 py-1 rounded-xl bg-zinc-950/80 border border-amber-500/30 text-amber-300 text-[10px] font-medium flex items-center gap-1.5 shadow-inner">
+                <span>💬</span>
+                <span className="italic font-mono">"มีหน้าที่กดมั่วจนเจอบัค แล้วแคปส่งไปปลุกพี่อาร์มตอนตีสอง 📸"</span>
+              </div>
             </div>
 
             {/* Socials */}
