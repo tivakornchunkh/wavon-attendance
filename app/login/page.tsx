@@ -42,30 +42,11 @@ export default function LoginPage() {
             </p>
             <Link
               href="/register"
-              className="w-full py-3 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-100/90 active:bg-zinc-200/70 border border-zinc-200 text-zinc-800 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-2 min-h-[46px]"
+              className="w-full py-3 px-4 rounded-xl bg-zinc-50 hover:bg-zinc-100/90 active:bg-zinc-200/70 border border-zinc-200 text-zinc-800 text-xs sm:text-sm font-bold transition flex items-center justify-center gap-1.5 min-h-[44px]"
             >
-              <span>✨</span>
-              <span>เปิดสโมสรใหม่ / สมัครสมาชิกโค้ชฟรี</span>
+              <span>เปิดสโมสรใหม่สำหรับโค้ช</span>
               <span className="text-zinc-400">&rarr;</span>
             </Link>
-          </div>
-
-          {/* Clean Security Notice */}
-          <div className="pt-4 border-t border-zinc-100 text-[11px]">
-            <div className="bg-zinc-50/70 border border-zinc-200/70 rounded-2xl p-3.5 text-zinc-600 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <p className="font-bold text-zinc-800 flex items-center gap-1.5">
-                  <span>🛡️</span>
-                  <span>ระบบความปลอดภัยแยกสโมสร</span>
-                </p>
-                <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-zinc-200/60 text-zinc-700 font-bold">
-                  Isolated
-                </span>
-              </div>
-              <p className="text-zinc-500 leading-relaxed text-[11px]">
-                ข้อมูลรายชื่อนักกีฬาและรอบการฝึกซ้อมถูกแยกความปลอดภัยตามแต่ละสโมสร ปลอดภัยและเป็นส่วนตัว
-              </p>
-            </div>
           </div>
         </div>
 

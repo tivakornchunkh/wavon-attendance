@@ -39,24 +39,6 @@ export default function RegisterPage() {
         {/* Clean Main Card */}
         <div className="bg-white border border-zinc-200/80 rounded-3xl p-6 sm:p-8 shadow-xs space-y-6">
           <RegisterForm />
-
-          {/* Clean Security & Isolation Notice */}
-          <div className="pt-4 border-t border-zinc-100 text-[11px]">
-            <div className="bg-zinc-50/70 border border-zinc-200/70 rounded-2xl p-3.5 text-zinc-600 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <p className="font-bold text-zinc-800 flex items-center gap-1.5">
-                  <span>🛡️</span>
-                  <span>ความปลอดภัยและการแยกข้อมูล</span>
-                </p>
-                <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-zinc-200/60 text-zinc-700 font-bold">
-                  Isolated
-                </span>
-              </div>
-              <p className="text-zinc-500 leading-relaxed text-[11px]">
-                ข้อมูลสโมสร นักกีฬา และรอบการซ้อมจะถูกแยกออกจากสโมสรอื่นโดยสมบูรณ์
-              </p>
-            </div>
-          </div>
         </div>
 
         {/* Clean Footer */}

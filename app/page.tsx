@@ -5,7 +5,6 @@ import { AttendanceRepository } from '../src/server/repositories/attendance.repo
 import { StatisticsService } from '../src/core/services/statistics.service';
 import { getCurrentSession } from '../src/server/helpers/auth';
 import { DEFAULT_TEAM_ID } from '../src/server/helpers/default-team';
-import { seedRealisticDataAction, clearDemoDataAction } from './actions/seed.actions';
 import { autoCloseExpiredSessions } from './actions/session.actions';
 import { getBangkokDateTime } from '../src/server/helpers/timezone';
 import DashboardView from '../components/DashboardView';
@@ -147,8 +146,6 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
       endDate={endDate}
       teamName={session.team ? session.team.name : 'สโมสร'}
       isAdmin={session.isAdmin}
-      seedRealisticDataAction={seedRealisticDataAction}
-      clearDemoDataAction={clearDemoDataAction}
     />
   );
 }

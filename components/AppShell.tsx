@@ -74,8 +74,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
 
   const navItems = [
     {
-      label: 'แดชบอร์ด',
-      sublabel: 'Dashboard',
+      label: 'แดชบอร์ดสถิติ',
       href: '/',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -85,8 +84,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
       active: pathname === '/',
     },
     {
-      label: 'นักกีฬา',
-      sublabel: 'Athletes',
+      label: 'ทะเบียนนักกีฬา',
       href: '/athletes',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -97,7 +95,6 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
     },
     {
       label: 'รอบซ้อม & เช็คชื่อ',
-      sublabel: 'Sessions & Check-in',
       href: '/sessions',
       icon: (
         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -109,8 +106,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
     ...(session.isAdmin
       ? [
           {
-            label: 'แผงผู้ดูแล',
-            sublabel: 'Admin Console',
+            label: 'แผงควบคุมสโมสร',
             href: '/admin',
             icon: (
               <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -142,10 +138,12 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
 
         {/* Current Active Team / Club Badge */}
         {session.team && (
-          <div className="px-5 py-3.5 mx-3 mt-3 rounded-xl bg-zinc-900/80 border border-zinc-800/80 flex items-center justify-between">
+          <div className="px-5 py-3 mx-3 mt-3 rounded-xl bg-zinc-900/80 border border-zinc-800/80 flex items-center justify-between">
             <div className="flex items-center gap-2.5 overflow-hidden">
-              <div className="w-7 h-7 rounded-lg bg-zinc-800 text-amber-400 flex items-center justify-center text-xs font-bold shrink-0">
-                🏢
+              <div className="w-7 h-7 rounded-lg bg-zinc-800 text-zinc-300 flex items-center justify-center shrink-0">
+                <svg className="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
               </div>
               <div className="overflow-hidden">
                 <p className="text-[10px] text-zinc-400 uppercase tracking-wider font-medium">สโมสรปัจจุบัน</p>
@@ -163,13 +161,13 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
         {/* Nav Links */}
         <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
           <p className="px-3 pb-2 text-[10px] font-bold uppercase tracking-wider text-zinc-500">
-            เมนูหลัก / Menu
+            เมนูหลัก
           </p>
           {navItems.map((item) => (
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-3.5 py-3 rounded-xl text-xs font-medium transition-all group relative ${
+              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all group relative ${
                 item.active
                   ? 'bg-white text-zinc-950 font-bold shadow-sm ring-1 ring-emerald-500/20'
                   : 'text-zinc-400 hover:text-white hover:bg-zinc-900/80'
@@ -181,14 +179,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
               <span className={`pl-1 ${item.active ? 'text-zinc-950' : 'text-zinc-400 group-hover:text-white'}`}>
                 {item.icon}
               </span>
-              <div>
-                <p className="leading-tight">{item.label}</p>
-                <p className={`text-[10px] font-normal leading-tight mt-0.5 ${
-                  item.active ? 'text-zinc-500' : 'text-zinc-500 group-hover:text-zinc-400'
-                }`}>
-                  {item.sublabel}
-                </p>
-              </div>
+              <span className="leading-tight">{item.label}</span>
             </Link>
           ))}
 
@@ -207,7 +198,11 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
               <div className="overflow-hidden">
                 <p className="text-xs font-semibold text-zinc-200 truncate">{session.user.name}</p>
                 <p className="text-[10px] text-zinc-400">
-                  {session.isAdmin ? '👑 ผู้ดูแลระบบ' : '👤 โค้ชผู้ฝึกสอน'}
+                  {session.isAdmin ? (
+                    <span className="text-amber-400 font-semibold">ผู้ดูแลระบบ</span>
+                  ) : (
+                    <span>โค้ชผู้ฝึกสอน</span>
+                  )}
                 </p>
               </div>
             </div>
@@ -240,85 +235,85 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
             <button
               type="button"
               onClick={() => setShowFeedback(true)}
-              className="text-zinc-400 hover:text-amber-400 flex items-center gap-1 transition cursor-pointer"
+              className="text-zinc-400 hover:text-white flex items-center gap-1.5 transition cursor-pointer"
             >
-              <span>🐞</span>
+              <svg className="w-3.5 h-3.5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+              </svg>
               <span>แจ้งปัญหา</span>
             </button>
             <button
               type="button"
               onClick={() => setShowCredits(true)}
-              className="text-zinc-400 hover:text-emerald-400 flex items-center gap-1 transition cursor-pointer"
+              className="text-zinc-400 hover:text-amber-400 flex items-center gap-1.5 transition cursor-pointer"
             >
-              <span>⭐</span>
-              <span>Credits</span>
+              <svg className="w-3.5 h-3.5 text-zinc-400 hover:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <span>ผู้พัฒนา</span>
             </button>
           </div>
         </div>
       </aside>
 
       {/* ========================================================= */}
-      {/* 2. MOBILE & TABLET TOP HEADER (< lg screens) */}
+      {/* 2. MOBILE & TABLET TOP HEADER (< lg screens, Consolidated <=56px) */}
       {/* ========================================================= */}
-      <header className="lg:hidden sticky top-0 z-40 bg-[#0F1115] text-white border-b border-zinc-800 shadow-md">
-        <div className="px-4 h-16 flex items-center justify-between">
-          {/* Hamburger Menu Toggle (Touch target min 44x44px) */}
+      <header className="lg:hidden sticky top-0 z-40 bg-[#0F1115] text-white border-b border-zinc-800 shadow-sm">
+        <div className="px-3 sm:px-4 h-14 flex items-center justify-between gap-2">
+          {/* Hamburger Menu Toggle (Touch target 40x40px) */}
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(true)}
-            className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white active:bg-zinc-800 transition cursor-pointer shrink-0"
+            className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 flex items-center justify-center text-zinc-300 hover:text-white active:bg-zinc-800 transition cursor-pointer shrink-0"
             aria-label="เปิดเมนูนำทาง"
           >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
             </svg>
           </button>
 
-          {/* Logo Center */}
-          <Link href="/" className="transition hover:opacity-90 flex items-center gap-1.5">
-            <WavonLogo theme="dark" size="sm" />
-            <span className="px-1.5 py-0.2 rounded-full text-[9px] font-mono font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
-              {APP_VERSION}
-            </span>
-          </Link>
+          {/* Center: Brand + Club Name */}
+          <div className="flex items-center gap-2 overflow-hidden">
+            <Link href="/" className="transition hover:opacity-90 flex items-center gap-1.5 shrink-0">
+              <WavonLogo theme="dark" size="sm" />
+            </Link>
+            {session.team && (
+              <>
+                <span className="text-zinc-600 text-xs hidden xs:inline">•</span>
+                <span className="text-[11px] font-semibold text-zinc-300 truncate max-w-[120px] sm:max-w-[200px]">
+                  {session.team.name}
+                </span>
+              </>
+            )}
+          </div>
 
-          {/* Right Action: Credits & User Icon */}
-          <div className="flex items-center gap-1.5">
+          {/* Right Action: Credits & User */}
+          <div className="flex items-center gap-1.5 shrink-0">
             <button
               type="button"
               onClick={() => setShowCredits(true)}
-              className="w-11 h-11 rounded-xl bg-zinc-900 border border-zinc-800 text-amber-400 hover:text-amber-300 active:bg-zinc-800 flex items-center justify-center text-sm transition cursor-pointer shadow-2xs"
+              className="w-10 h-10 rounded-xl bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-amber-400 active:bg-zinc-800 flex items-center justify-center transition cursor-pointer shadow-2xs"
               title="ข้อมูลผู้พัฒนา (Credits)"
               aria-label="ข้อมูลผู้พัฒนา"
             >
-              ⭐
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
             </button>
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(true)}
-              className="px-2.5 py-1.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 active:bg-zinc-800 cursor-pointer"
+              className="h-10 px-2.5 rounded-xl bg-zinc-900 border border-zinc-800 text-[11px] font-medium text-zinc-300 flex items-center gap-1.5 active:bg-zinc-800 cursor-pointer"
               title="ดูข้อมูลผู้ใช้และเมนู"
             >
-              <span>👤</span>
-              <span className="max-w-[70px] truncate">{session.user.name.split(' ')[0]}</span>
+              <span className="w-6 h-6 rounded-lg bg-zinc-800 flex items-center justify-center text-[10px] font-bold text-zinc-200">
+                {session.user.name.charAt(0)}
+              </span>
+              <span className="max-w-[65px] truncate hidden sm:inline">{session.user.name.split(' ')[0]}</span>
             </button>
           </div>
         </div>
-
-        {/* Mobile Active Team subheader bar */}
-        {session.team && (
-          <div className="px-4 py-1.5 bg-zinc-900/90 border-t border-zinc-800/60 flex items-center justify-between text-[11px]">
-            <span className="text-zinc-400 flex items-center gap-1.5 truncate">
-              <span>🏢 สโมสร:</span>
-              <strong className="text-zinc-200 truncate">{session.team.name}</strong>
-            </span>
-            {session.isAdmin ? (
-              <span className="text-[10px] text-amber-300 font-semibold shrink-0">👑 ผู้ดูแล</span>
-            ) : (
-              <span className="text-[10px] text-emerald-400 font-semibold shrink-0">● พร้อมใช้งาน</span>
-            )}
-          </div>
-        )}
       </header>
 
       {/* ========================================================= */}
@@ -384,12 +379,7 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
                   <span className={item.active ? 'text-zinc-950' : 'text-zinc-400'}>
                     {item.icon}
                   </span>
-                  <div>
-                    <p className="leading-tight">{item.label}</p>
-                    <p className={`text-[11px] mt-0.5 ${item.active ? 'text-zinc-500' : 'text-zinc-500'}`}>
-                      {item.sublabel}
-                    </p>
-                  </div>
+                  <span className="leading-tight font-semibold">{item.label}</span>
                 </Link>
               ))}
 
@@ -403,7 +393,9 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-white transition text-left cursor-pointer"
                 >
-                  <span className="text-base">💬</span>
+                  <svg className="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
                   <span>แจ้งปัญหา / ข้อเสนอแนะ</span>
                 </button>
                 <button
@@ -412,9 +404,11 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
                     setIsMobileMenuOpen(false);
                     setShowCredits(true);
                   }}
-                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-amber-400 hover:bg-zinc-900 hover:text-amber-300 transition text-left cursor-pointer"
+                  className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-xs font-medium text-zinc-400 hover:bg-zinc-900 hover:text-amber-400 transition text-left cursor-pointer"
                 >
-                  <span className="text-base">⭐</span>
+                  <svg className="w-4 h-4 text-zinc-400 hover:text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
                   <span>ข้อมูลผู้พัฒนา (Credits)</span>
                 </button>
               </div>
@@ -575,62 +569,71 @@ export default function AppShell({ children, session, logoutAction }: AppShellPr
       {/* ========================================================= */}
       {/* 5. TABLET / MOBILE BOTTOM NAVIGATION BAR (< lg screens) */}
       {/* ========================================================= */}
-      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/90 backdrop-blur-xl border-t border-zinc-200/80 px-3 py-1.5 flex items-center justify-around shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.05)]">
+      <nav className="lg:hidden fixed bottom-0 inset-x-0 z-30 bg-white/95 backdrop-blur-xl border-t border-zinc-200/80 px-3 py-1 flex items-center justify-around shadow-[0_-10px_25px_-5px_rgba(0,0,0,0.05)]">
         <Link
           href="/"
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[46px] transition-all relative ${
             pathname === '/'
-              ? 'text-zinc-950 font-black bg-zinc-100/90 shadow-2xs'
+              ? 'text-zinc-950 font-black bg-zinc-100 shadow-2xs'
               : 'text-zinc-500 hover:text-zinc-800'
           }`}
         >
-          <span className="text-lg leading-none">📊</span>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+          </svg>
           <span className="mt-0.5">แดชบอร์ด</span>
           {pathname === '/' && (
-            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-1" />
+            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-0.5" />
           )}
         </Link>
         <Link
           href="/athletes"
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[46px] transition-all relative ${
             pathname.startsWith('/athletes')
-              ? 'text-zinc-950 font-black bg-zinc-100/90 shadow-2xs'
+              ? 'text-zinc-950 font-black bg-zinc-100 shadow-2xs'
               : 'text-zinc-500 hover:text-zinc-800'
           }`}
         >
-          <span className="text-lg leading-none">🏃</span>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+          </svg>
           <span className="mt-0.5">นักกีฬา</span>
           {pathname.startsWith('/athletes') && (
-            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-1" />
+            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-0.5" />
           )}
         </Link>
         <Link
           href="/sessions"
-          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+          className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[46px] transition-all relative ${
             pathname.startsWith('/sessions')
-              ? 'text-zinc-950 font-black bg-zinc-100/90 shadow-2xs'
+              ? 'text-zinc-950 font-black bg-zinc-100 shadow-2xs'
               : 'text-zinc-500 hover:text-zinc-800'
           }`}
         >
-          <span className="text-lg leading-none">⏱️</span>
+          <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+          </svg>
           <span className="mt-0.5">รอบซ้อม</span>
           {pathname.startsWith('/sessions') && (
-            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-1" />
+            <span className="w-1 h-1 rounded-full bg-emerald-500 absolute bottom-0.5" />
           )}
         </Link>
         {session.isAdmin && (
           <Link
             href="/admin"
-            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[48px] transition-all relative ${
+            className={`flex flex-col items-center justify-center py-1.5 px-3 rounded-2xl text-[10px] font-medium min-w-[64px] min-h-[46px] transition-all relative ${
               pathname.startsWith('/admin')
                 ? 'text-amber-900 font-black bg-amber-50 shadow-2xs border border-amber-200/60'
                 : 'text-zinc-500 hover:text-zinc-800'
             }`}
           >
-            <span className="text-lg leading-none">👑</span>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
             <span className="mt-0.5">ผู้ดูแล</span>
             {pathname.startsWith('/admin') && (
-              <span className="w-1 h-1 rounded-full bg-amber-500 absolute bottom-1" />
+              <span className="w-1 h-1 rounded-full bg-amber-500 absolute bottom-0.5" />
             )}
           </Link>
         )}

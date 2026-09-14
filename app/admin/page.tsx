@@ -7,6 +7,7 @@ import { createClubAction, switchClubAction } from '../actions/auth.actions';
 import DeleteClubModal from './DeleteClubModal';
 import { FeedbackRepository } from '../../src/server/repositories/feedback.repo';
 import FeedbackManager from './FeedbackManager';
+import AdminDemoTools from './AdminDemoTools';
 
 export const dynamic = 'force-dynamic';
 
@@ -236,6 +237,9 @@ export default async function AdminPage() {
           </div>
         </div>
       </div>
+
+      {/* Developer & Demo Data Tools */}
+      <AdminDemoTools />
 
       {/* In-App Feedback & Bug Reports Section */}
       <FeedbackManager initialFeedbacks={initialFeedbacks} />

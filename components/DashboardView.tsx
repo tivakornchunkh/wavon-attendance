@@ -14,43 +14,32 @@ interface DashboardViewProps {
   endDate?: string;
   teamName: string;
   isAdmin: boolean;
-  seedRealisticDataAction: () => Promise<void>;
-  clearDemoDataAction: () => Promise<void>;
 }
 
-function useAnimatedNumber(value: number, duration = 800): number {
-  const [displayValue, setDisplayValue] = useState(0);
-
-  React.useEffect(() => {
-    let startTimestamp: number | null = null;
-    const startValue = 0;
-    const endValue = value;
-
-    if (endValue === 0) {
-      setDisplayValue(0);
-      return;
+function renderAttendanceDots(rate: number, total: number) {
+  if (total === 0) {
+    return (
+      <span className="flex items-center gap-1" title="ยังไม่มีรอบบันทึก">
+        <span className="w-1.5 h-1.5 rounded-full bg-zinc-200" />
+        <span className="w-1.5 h-1.5 rounded-full bg-zinc-200" />
+        <span className="w-1.5 h-1.5 rounded-full bg-zinc-200" />
+        <span className="w-1.5 h-1.5 rounded-full bg-zinc-200" />
+        <span className="w-1.5 h-1.5 rounded-full bg-zinc-200" />
+      </span>
+    );
+  }
+  const dots = [];
+  const greenCount = rate >= 90 ? 5 : rate >= 75 ? 4 : rate >= 60 ? 3 : rate >= 40 ? 2 : rate > 0 ? 1 : 0;
+  for (let i = 0; i < 5; i++) {
+    if (i < greenCount) {
+      dots.push(<span key={i} className="w-1.5 h-1.5 rounded-full bg-emerald-500" />);
+    } else if (rate >= 50 && i === greenCount) {
+      dots.push(<span key={i} className="w-1.5 h-1.5 rounded-full bg-amber-400" />);
+    } else {
+      dots.push(<span key={i} className="w-1.5 h-1.5 rounded-full bg-zinc-300" />);
     }
-
-    let animationFrameId: number;
-
-    const step = (timestamp: number) => {
-      if (!startTimestamp) startTimestamp = timestamp;
-      const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-      const easeProgress = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(startValue + (endValue - startValue) * easeProgress);
-      setDisplayValue(current);
-
-      if (progress < 1) {
-        animationFrameId = requestAnimationFrame(step);
-      }
-    };
-
-    animationFrameId = requestAnimationFrame(step);
-
-    return () => cancelAnimationFrame(animationFrameId);
-  }, [value, duration]);
-
-  return displayValue;
+  }
+  return <span className="flex items-center gap-1" title={`ความสม่ำเสมอ: ${rate}%`}>{dots}</span>;
 }
 
 export default function DashboardView({
@@ -62,14 +51,7 @@ export default function DashboardView({
   endDate,
   teamName,
   isAdmin,
-  seedRealisticDataAction,
-  clearDemoDataAction,
 }: DashboardViewProps) {
-  // Animated Counters
-  const animatedRate = useAnimatedNumber(dashboard.overallAttendanceRate);
-  const animatedAthletes = useAnimatedNumber(dashboard.activeAthletes);
-  const animatedSessions = useAnimatedNumber(dashboard.totalSessions);
-
   // Mobile Active Tab: 'overview' | 'rankings' | 'roster'
   const [activeMobileTab, setActiveMobileTab] = useState<'overview' | 'rankings' | 'roster'>('overview');
 
@@ -185,9 +167,9 @@ export default function DashboardView({
   return (
     <div className="space-y-4 sm:space-y-6">
       {/* ========================================================= */}
-      {/* 1. HERO HEADER: Sleek, Modern, High-Tech */}
+      {/* 1. HERO HEADER: Sleek, Modern Athletic Tech */}
       {/* ========================================================= */}
-      <div className="bg-[#0F1115] text-white rounded-2xl sm:rounded-3xl p-4 sm:p-7 shadow-md border border-zinc-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
+      <div className="bg-[#0F1115] text-white rounded-2xl sm:rounded-3xl p-5 sm:p-7 shadow-md border border-zinc-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4 sm:gap-6">
         <div>
           <div className="flex items-center gap-2 mb-2 flex-wrap">
             <span className="px-2.5 py-0.5 rounded-full text-[10px] sm:text-[11px] font-mono font-bold tracking-wider uppercase bg-zinc-800 text-zinc-300 border border-zinc-700">
@@ -208,47 +190,67 @@ export default function DashboardView({
           </p>
         </div>
 
-        {/* Admin Demo Seeder */}
-        {isAdmin && (
-          <div className="bg-zinc-900/90 border border-zinc-800 rounded-xl p-3 flex flex-col gap-2 shrink-0 self-start md:self-auto w-full md:w-auto">
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-semibold text-zinc-300 flex items-center gap-1.5">
-                <span>⚡</span>
-                <span>ชุดข้อมูลทดสอบ</span>
-              </span>
-              <span className="text-[10px] text-amber-400 font-bold px-1.5 py-0.2 rounded bg-amber-400/10 border border-amber-400/20">
-                ADMIN
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <form action={seedRealisticDataAction} className="flex-1">
-                <button
-                  type="submit"
-                  className="w-full px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-lg shadow-xs transition cursor-pointer min-h-[34px] flex items-center justify-center gap-1"
-                >
-                  โหลด Demo
-                </button>
-              </form>
-              <form action={clearDemoDataAction} className="flex-1">
-                <button
-                  type="submit"
-                  className="w-full px-3 py-1.5 bg-zinc-800 hover:bg-rose-900/50 hover:text-rose-200 text-zinc-300 font-semibold text-xs rounded-lg border border-zinc-700 transition cursor-pointer min-h-[34px] flex items-center justify-center gap-1"
-                >
-                  ล้าง Demo
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
+        {/* Quick Coach Actions */}
+        <div className="flex items-center gap-2.5 self-start md:self-auto shrink-0">
+          <Link
+            href="/sessions"
+            className="px-4 py-2.5 rounded-xl bg-white hover:bg-zinc-100 active:bg-zinc-200 text-zinc-950 text-xs font-bold transition flex items-center gap-2 shadow-xs min-h-[40px]"
+          >
+            <svg className="w-4 h-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+            </svg>
+            <span>รอบการซ้อม & เช็คชื่อ</span>
+          </Link>
+          <Link
+            href="/athletes"
+            className="px-3.5 py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-zinc-300 hover:text-white border border-zinc-700 text-xs font-semibold transition flex items-center gap-1.5 min-h-[40px]"
+          >
+            <span>รายชื่อนักกีฬา</span>
+          </Link>
+        </div>
       </div>
 
       {/* ========================================================= */}
-      {/* 2. CLUB READINESS SCORE CARD (Premium High-Impact Banner) */}
+      {/* 2. TODAY'S ACTIVE SESSION HIGHLIGHT (Actionable Coach Banner) */}
       {/* ========================================================= */}
-      <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/5 transition-all duration-300 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {dashboard.todaySummary && dashboard.todaySummary.totalSessions > 0 ? (
+        <div className="bg-linear-to-r from-emerald-950/80 via-zinc-900 to-zinc-900 text-white rounded-2xl border border-emerald-500/30 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 flex items-center justify-center text-lg font-bold shrink-0">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full border border-emerald-500/30">
+                  TODAY ACTIVE
+                </span>
+                <span className="text-xs text-zinc-400 font-medium">รอบการซ้อมประจำวันนี้</span>
+              </div>
+              <p className="text-xs sm:text-sm font-bold text-white mt-1">
+                บันทึกแล้ว <span className="text-emerald-400 tabular-nums">{dashboard.todaySummary.presentCount} คน</span> • ขาด <span className="text-rose-400 tabular-nums">{dashboard.todaySummary.absentCount}</span> • ลา <span className="text-amber-400 tabular-nums">{dashboard.todaySummary.leaveCount}</span>
+                <span className="text-xs text-zinc-400 font-normal ml-2 hidden sm:inline">(ความสม่ำเสมอ {dashboard.todaySummary.attendanceRate}%)</span>
+              </p>
+            </div>
+          </div>
+          <Link
+            href="/sessions"
+            className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-black text-xs transition flex items-center justify-center gap-1.5 shadow-xs shrink-0"
+          >
+            <span>เปิดรอบซ้อมและเช็คชื่อ</span>
+            <span>&rarr;</span>
+          </Link>
+        </div>
+      ) : null}
+
+      {/* ========================================================= */}
+      {/* 3. CLUB READINESS SCORE CARD (Refined Athletic Index) */}
+      {/* ========================================================= */}
+      <div className="bg-white rounded-2xl border border-zinc-200/80 hover:border-zinc-300 transition-all p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
           <div
-            className={`w-13 h-13 sm:w-15 sm:h-15 rounded-2xl flex items-center justify-center font-black text-2xl sm:text-3xl text-white shadow-md shrink-0 ${readiness.bg}`}
+            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center font-black text-xl sm:text-2xl text-white shadow-xs shrink-0 ${readiness.bg}`}
           >
             {readiness.grade}
           </div>
@@ -264,7 +266,7 @@ export default function DashboardView({
               </span>
             </div>
             <p className="text-xs sm:text-sm font-bold text-zinc-900 mt-0.5">
-              คะแนนความพร้อมสโมสร: <strong className="text-base sm:text-lg">{animatedRate}%</strong>
+              คะแนนความพร้อมสโมสร: <strong className="text-base sm:text-lg tabular-nums">{dashboard.overallAttendanceRate}%</strong>
             </p>
             <p className="text-[11px] text-zinc-500 mt-0.5 line-clamp-1 sm:line-clamp-none">
               {readiness.description}
@@ -275,11 +277,11 @@ export default function DashboardView({
         <div className="w-full sm:w-auto flex items-center justify-between sm:justify-end gap-3 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100 text-xs text-zinc-500">
           <div className="text-left sm:text-right">
             <span className="block text-[10px] text-zinc-400">ประเมินจาก</span>
-            <strong className="text-zinc-900">{allAthletesStats.length} นักกีฬา</strong>
+            <strong className="text-zinc-900 tabular-nums">{allAthletesStats.length} นักกีฬา</strong>
           </div>
           <div className="text-right">
             <span className="block text-[10px] text-zinc-400">รอบฝึกซ้อม</span>
-            <strong className="text-zinc-900">{dashboard.totalSessions} รอบ</strong>
+            <strong className="text-zinc-900 tabular-nums">{dashboard.totalSessions} รอบ</strong>
           </div>
         </div>
       </div>
@@ -367,8 +369,8 @@ export default function DashboardView({
                 </span>
               </div>
               <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900">
-                  {animatedRate}%
+                <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 tabular-nums">
+                  {dashboard.overallAttendanceRate}%
                 </span>
                 <span className="text-[10px] sm:text-xs text-zinc-400 font-medium hidden sm:inline">เฉลี่ยรวม</span>
               </div>
@@ -399,8 +401,8 @@ export default function DashboardView({
                 </span>
               </div>
               <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900">
-                  {animatedAthletes}
+                <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 tabular-nums">
+                  {dashboard.activeAthletes}
                 </span>
                 <span className="text-[10px] sm:text-xs text-zinc-400 font-medium">/ {dashboard.totalAthletes} คน</span>
               </div>
@@ -426,8 +428,8 @@ export default function DashboardView({
                 </span>
               </div>
               <div className="mt-2 sm:mt-3 flex items-baseline gap-1.5">
-                <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900">
-                  {animatedSessions}
+                <span className="text-2xl sm:text-4xl font-black tracking-tight text-zinc-900 tabular-nums">
+                  {dashboard.totalSessions}
                 </span>
                 <span className="text-[10px] sm:text-xs text-zinc-400 font-medium">รอบ</span>
               </div>
@@ -537,8 +539,8 @@ export default function DashboardView({
                   />
                 </svg>
                 <div className="absolute text-center">
-                  <span className="text-xl sm:text-2xl font-black text-zinc-900 block leading-none">
-                    {animatedRate}%
+                  <span className="text-xl sm:text-2xl font-black text-zinc-900 block leading-none tabular-nums">
+                    {dashboard.overallAttendanceRate}%
                   </span>
                   <span className="text-[9px] text-zinc-400 font-bold uppercase">เฉลี่ยรวม</span>
                 </div>
@@ -905,9 +907,12 @@ export default function DashboardView({
                         {stat.athleteName.charAt(0)}
                       </span>
                       <div>
-                        <p className="text-xs font-bold text-zinc-900 leading-tight">
-                          {stat.athleteName}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-xs font-bold text-zinc-900 leading-tight">
+                            {stat.athleteName}
+                          </p>
+                          {renderAttendanceDots(stat.attendanceRate, stat.totalSessions)}
+                        </div>
                         <span className="text-[10px] font-mono font-bold text-zinc-400">
                           {stat.athleteCode}
                         </span>
@@ -968,6 +973,7 @@ export default function DashboardView({
                 <tr>
                   <th className="px-5 py-3">รหัส</th>
                   <th className="px-5 py-3">ชื่อ - นามสกุล</th>
+                  <th className="px-5 py-3 text-center">ความสม่ำเสมอ</th>
                   <th className="px-5 py-3 text-center">รอบที่บันทึก</th>
                   <th className="px-5 py-3 text-center text-emerald-700">มา (Present)</th>
                   <th className="px-5 py-3 text-center text-rose-700">ขาด (Absent)</th>
@@ -978,7 +984,7 @@ export default function DashboardView({
               <tbody className="divide-y divide-zinc-200">
                 {filteredAthletes.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="p-8 text-center text-zinc-400">
+                    <td colSpan={8} className="p-8 text-center text-zinc-400">
                       ไม่พบนักกีฬาที่ตรงกับเงื่อนไขการค้นหา
                     </td>
                   </tr>
@@ -998,6 +1004,11 @@ export default function DashboardView({
                           <span>{stat.athleteName}</span>
                           <span className="text-[10px] text-zinc-400 font-normal">&rarr;</span>
                         </Link>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <div className="flex justify-center">
+                          {renderAttendanceDots(stat.attendanceRate, stat.totalSessions)}
+                        </div>
                       </td>
                       <td className="px-5 py-3.5 text-center font-medium">
                         {stat.totalSessions} รอบ
