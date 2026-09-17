@@ -3,12 +3,15 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import ExportReportModal from './ExportReportModal';
 
 interface DashboardFilterBarProps {
   currentPeriod?: string;
   periodLabel: string;
   startDate?: string;
   endDate?: string;
+  teamName?: string;
+  onOpenExportModal?: () => void;
 }
 
 export default function DashboardFilterBar({
@@ -16,9 +19,12 @@ export default function DashboardFilterBar({
   periodLabel,
   startDate: initialStart,
   endDate: initialEnd,
+  teamName = 'สโมสร',
+  onOpenExportModal,
 }: DashboardFilterBarProps) {
   const router = useRouter();
   const [showCustomPicker, setShowCustomPicker] = useState(currentPeriod === 'custom');
+  const [showExportModal, setShowExportModal] = useState(false);
   const [customStart, setCustomStart] = useState(initialStart || '');
   const [customEnd, setCustomEnd] = useState(initialEnd || '');
 
@@ -93,22 +99,28 @@ export default function DashboardFilterBar({
         </div>
 
         {/* Export Button */}
-        <a
-          href={`/api/export/attendance${initialStart ? `?startDate=${initialStart}&endDate=${initialEnd}` : ''}`}
-          download
+        <button
+          type="button"
+          onClick={() => {
+            if (onOpenExportModal) {
+              onOpenExportModal();
+            } else {
+              setShowExportModal(true);
+            }
+          }}
           className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#0F1115] hover:bg-zinc-800 active:bg-black text-white font-bold text-xs rounded-xl shadow-xs transition cursor-pointer min-h-[42px] shrink-0"
           title="ดาวน์โหลดรายงานสรุปเป็นไฟล์ Excel/CSV (ภาษาไทยสมบูรณ์)"
         >
           <span>📥</span>
           <span>ส่งออกรายงาน (Excel / CSV)</span>
-        </a>
+        </button>
       </div>
 
       {/* Collapsible Custom Date Range Form */}
       {showCustomPicker && (
         <form
           onSubmit={handleApplyCustom}
-          className="p-3.5 bg-zinc-50/80 border border-zinc-200 rounded-xl flex flex-wrap items-center gap-3 animate-in fade-in slide-in-from-top-1 duration-150"
+          className="p-3.5 bg-zinc-50/80 border border-zinc-200 rounded-xl flex flex-wrap items-center gap-3 animate-in fade-in slide-from-top-1 duration-150"
         >
           <div className="flex items-center gap-2 text-xs">
             <label className="font-bold text-zinc-700">เริ่มต้น:</label>
@@ -151,6 +163,15 @@ export default function DashboardFilterBar({
           </button>
         </form>
       )}
+
+      {/* Export Report Modal */}
+      <ExportReportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        teamName={teamName}
+        defaultStartDate={initialStart}
+        defaultEndDate={initialEnd}
+      />
     </div>
   );
 }

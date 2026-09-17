@@ -4,6 +4,7 @@ import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { AthleteAttendanceStats, DashboardSummary } from '../src/core/domain/statistics';
 import DashboardFilterBar from './DashboardFilterBar';
+import ExportReportModal from './ExportReportModal';
 
 interface DashboardViewProps {
   dashboard: DashboardSummary;
@@ -54,6 +55,9 @@ export default function DashboardView({
 }: DashboardViewProps) {
   // Mobile Active Tab: 'overview' | 'rankings' | 'roster'
   const [activeMobileTab, setActiveMobileTab] = useState<'overview' | 'rankings' | 'roster'>('overview');
+
+  // Export Report Modal State
+  const [showExportModal, setShowExportModal] = useState(false);
 
   // Search & Filter State for Athletes Roster
   const [searchQuery, setSearchQuery] = useState('');
@@ -294,6 +298,8 @@ export default function DashboardView({
         periodLabel={periodLabel}
         startDate={startDate}
         endDate={endDate}
+        teamName={teamName}
+        onOpenExportModal={() => setShowExportModal(true)}
       />
 
       {/* ========================================================= */}
@@ -805,14 +811,14 @@ export default function DashboardView({
               </p>
             </div>
 
-            <a
-              href={`/api/export/attendance${startDate ? `?startDate=${startDate}&endDate=${endDate}` : ''}`}
-              download
+            <button
+              type="button"
+              onClick={() => setShowExportModal(true)}
               className="px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 font-bold text-xs transition flex items-center gap-1.5 self-start sm:self-auto cursor-pointer"
             >
               <span>📥</span>
               <span>ดาวน์โหลด Excel</span>
-            </a>
+            </button>
           </div>
 
           {/* Search Bar & Tier Filters */}
@@ -1043,6 +1049,15 @@ export default function DashboardView({
           </div>
         </div>
       </div>
+
+      {/* Export Report Modal */}
+      <ExportReportModal
+        isOpen={showExportModal}
+        onClose={() => setShowExportModal(false)}
+        teamName={teamName}
+        defaultStartDate={startDate}
+        defaultEndDate={endDate}
+      />
     </div>
   );
 }

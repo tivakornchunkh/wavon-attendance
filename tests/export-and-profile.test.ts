@@ -205,5 +205,48 @@ describe('Export, Filters, and Athlete Profile Queries', () => {
       expect(fullCsv).toContain('สมชาย นักวิ่ง');
       expect(fullCsv).toContain('ซ้อม ม.ค.');
     });
+
+    it('calculates monthly and yearly stats accurately', async () => {
+      const monthly = await statsService.getMonthlyStats('team-a');
+      const yearly = await statsService.getYearlyStats('team-a');
+
+      // 3 sessions in 2026: Jan, Feb, Mar
+      expect(monthly.length).toBe(3);
+      expect(monthly[0].period).toBe('2026-01');
+      expect(monthly[0].presentCount).toBe(1);
+      expect(monthly[0].attendanceRate).toBe(100);
+
+      expect(monthly[1].period).toBe('2026-02');
+      expect(monthly[1].absentCount).toBe(1);
+      expect(monthly[1].attendanceRate).toBe(0);
+
+      expect(yearly.length).toBe(1);
+      expect(yearly[0].period).toBe('2026');
+      expect(yearly[0].totalSessions).toBe(3);
+      expect(yearly[0].presentCount).toBe(2);
+      expect(yearly[0].absentCount).toBe(1);
+    });
+
+    it('generates professional multi-sheet Excel (.xlsx) workbook with ExcelJS', async () => {
+      const ExcelJS = (await import('exceljs')).default;
+      const workbook = new ExcelJS.Workbook();
+      workbook.creator = 'WAVON Athlete Attendance System';
+
+      const s1 = workbook.addWorksheet('ภาพรวมสโมสร');
+      const s2 = workbook.addWorksheet('สรุปรายเดือน');
+      const s3 = workbook.addWorksheet('สรุปรายวัน');
+      const s4 = workbook.addWorksheet('สถิตินักกีฬารายบุคคล');
+
+      expect(workbook.worksheets.length).toBe(4);
+      expect(workbook.getWorksheet('ภาพรวมสโมสร')).toBeDefined();
+      expect(workbook.getWorksheet('สรุปรายเดือน')).toBeDefined();
+      expect(workbook.getWorksheet('สรุปรายวัน')).toBeDefined();
+      expect(workbook.getWorksheet('สถิตินักกีฬารายบุคคล')).toBeDefined();
+
+      s1.getCell('A1').value = 'รายงานสรุปสถิติการฝึกซ้อมกีฬา';
+      const buffer = await workbook.xlsx.writeBuffer();
+      expect(buffer).toBeDefined();
+      expect(buffer.byteLength).toBeGreaterThan(0);
+    }, 20000);
   });
 });

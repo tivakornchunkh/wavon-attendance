@@ -271,5 +271,105 @@ export class StatisticsService {
 
     return result.sort((a, b) => a.period.localeCompare(b.period));
   }
+
+  /**
+   * คำนวณสถิติย่อยแบบรายเดือน (Monthly) เช่น 2026-01, 2026-02
+   */
+  async getMonthlyStats(
+    teamId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<PeriodicStats[]> {
+    const sessions = await this.sessionRepo.findByDateRange(teamId, startDate, endDate);
+    const monthMap = new Map<
+      string,
+      { totalSessions: number; present: number; absent: number; leave: number }
+    >();
+
+    for (const session of sessions) {
+      const month = session.date.substring(0, 7); // YYYY-MM
+      const atts = await this.attendanceRepo.findBySessionId(session.id);
+      const current = monthMap.get(month) || {
+        totalSessions: 0,
+        present: 0,
+        absent: 0,
+        leave: 0,
+      };
+
+      current.totalSessions += 1;
+      for (const a of atts) {
+        if (a.status === 'PRESENT') current.present++;
+        else if (a.status === 'ABSENT') current.absent++;
+        else if (a.status === 'LEAVE') current.leave++;
+      }
+
+      monthMap.set(month, current);
+    }
+
+    const result: PeriodicStats[] = [];
+    for (const [month, data] of monthMap.entries()) {
+      const totalAtts = data.present + data.absent + data.leave;
+      result.push({
+        period: month,
+        totalSessions: data.totalSessions,
+        presentCount: data.present,
+        absentCount: data.absent,
+        leaveCount: data.leave,
+        attendanceRate: this.calculateAttendanceRate(data.present, totalAtts, data.leave),
+      });
+    }
+
+    return result.sort((a, b) => a.period.localeCompare(b.period));
+  }
+
+  /**
+   * คำนวณสถิติย่อยแบบรายปี (Yearly) เช่น 2025, 2026
+   */
+  async getYearlyStats(
+    teamId: string,
+    startDate?: string,
+    endDate?: string
+  ): Promise<PeriodicStats[]> {
+    const sessions = await this.sessionRepo.findByDateRange(teamId, startDate, endDate);
+    const yearMap = new Map<
+      string,
+      { totalSessions: number; present: number; absent: number; leave: number }
+    >();
+
+    for (const session of sessions) {
+      const year = session.date.substring(0, 4); // YYYY
+      const atts = await this.attendanceRepo.findBySessionId(session.id);
+      const current = yearMap.get(year) || {
+        totalSessions: 0,
+        present: 0,
+        absent: 0,
+        leave: 0,
+      };
+
+      current.totalSessions += 1;
+      for (const a of atts) {
+        if (a.status === 'PRESENT') current.present++;
+        else if (a.status === 'ABSENT') current.absent++;
+        else if (a.status === 'LEAVE') current.leave++;
+      }
+
+      yearMap.set(year, current);
+    }
+
+    const result: PeriodicStats[] = [];
+    for (const [year, data] of yearMap.entries()) {
+      const totalAtts = data.present + data.absent + data.leave;
+      result.push({
+        period: year,
+        totalSessions: data.totalSessions,
+        presentCount: data.present,
+        absentCount: data.absent,
+        leaveCount: data.leave,
+        attendanceRate: this.calculateAttendanceRate(data.present, totalAtts, data.leave),
+      });
+    }
+
+    return result.sort((a, b) => a.period.localeCompare(b.period));
+  }
 }
 
