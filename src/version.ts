@@ -4,7 +4,7 @@
  * - Minor update (x.y.0): New major features (e.g. anti-cheat, recurring schedule, auto-absent)
  * - Patch update (x.y.z): Bug fixes, UI polishes, and hotfixes
  */
-export const APP_VERSION = 'v2.8.1';
-export const APP_VERSION_RAW = '2.8.1';
-export const APP_RELEASE_NAME = 'Full Comprehensive Bug Fixes, Concurrency & Security Hardening';
+export const APP_VERSION = 'v2.8.2';
+export const APP_VERSION_RAW = '2.8.2';
+export const APP_RELEASE_NAME = 'UI/UX Athletic Tech Polish, Dedicated Admin Demo Tools & Inline Check-In';
 
