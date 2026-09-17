@@ -82,7 +82,7 @@ export default async function AdminPage() {
         <div className="lg:col-span-2 space-y-4">
           <div className="flex items-center justify-between">
             <h2 className="text-base font-black text-zinc-900 flex items-center gap-2">
-              <span>⚽</span>
+              <span>🏢</span>
               <span>สโมสรในระบบทั้งหมด ({teamsData.length})</span>
             </h2>
             <span className="text-xs text-zinc-400 font-medium hidden sm:inline">

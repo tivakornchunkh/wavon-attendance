@@ -32,7 +32,7 @@ export default function NotFound() {
             href="/sessions"
             className="flex-1 px-5 py-3 rounded-xl bg-zinc-100 hover:bg-zinc-200 text-zinc-700 text-xs sm:text-sm font-bold border border-zinc-200 transition flex items-center justify-center gap-1.5 min-h-[44px]"
           >
-            <span>⚽</span>
+            <span>⏱️</span>
             <span>รอบฝึกซ้อม</span>
           </Link>
         </div>

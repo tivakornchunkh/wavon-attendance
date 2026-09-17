@@ -27,23 +27,23 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
   const steps = [
     {
       step: 1,
-      tabTitle: '1. รายชื่อนักกีฬา',
-      badge: 'ฟังก์ชันที่ 1 • จัดการรายชื่อ',
-      title: 'รายชื่อนักกีฬาในสโมสร',
-      subtitle: 'เพิ่มรายชื่อ กำหนดรหัสประจำตัว แยกข้อมูลสโมสรชัดเจน',
+      tabTitle: '1. ทะเบียนนักกีฬา',
+      badge: 'ฟังก์ชันที่ 1 • จัดการรายชื่อ & นำเข้าด่วน',
+      title: 'จัดการรายชื่อ & นำเข้าเป็นชุด',
+      subtitle: 'เพิ่มรายชื่อทีละคน หรือวางรายชื่อทั้งทีมจาก LINE / Excel ใน 1 วินาที',
       icon: '🏃‍♂️',
       color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
       actionSteps: [
-        'กดเมนู "นักกีฬา" บนแถบเมนู',
-        'เลือก "ทีละคน" หรือแท็บ "นำเข้าเป็นชุด" แล้วคัดลอกรายชื่อจาก LINE/Excel มาวางเพิ่มได้ทันที',
-        'ระบบจะแยกแยะชื่อ เบอร์เสื้อ รหัสให้อัตโนมัติ พร้อม Pop-up ขวาบนแจ้งผลการบันทึก',
+        'กดเมนู "นักกีฬา" บนแถบเมนู &rarr; เลือกแท็บ "นำเข้าเป็นชุด" แล้วคัดลอกรายชื่อจากแชท LINE หรือตาราง Excel มาวางได้ทันที',
+        'ระบบมี Smart Parser แยกชื่อ-นามสกุล หมายเลขประจำตัว/รหัส ให้อัตโนมัติในคลิกเดียว',
+        'แตะที่ชื่อนักกีฬาเพื่อดูประวัติการซ้อมสะสม หรือกด "✏️ แก้ไขข้อมูล" เพื่อปรับปรุงเบอร์โทรและรหัสได้ตลอดเวลา',
       ],
-      quickTip: '📌 สะดวก รวดเร็ว: วางรายชื่อ 20-30 คนในช่องเดียว ระบบตรวจนับและเพิ่มเข้าสโมสรใน 1 คลิก!',
+      quickTip: '📌 วางทีเดียว 30-50 คน: ระบบจัดระเบียบและบันทึกเข้าสังกัดพร้อมกัน ไม่ต้องพิมพ์ทีละชื่อให้เหนื่อย!',
       renderIllustration: () => (
         <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2 text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-zinc-200">
             <span className="font-bold text-zinc-700 flex items-center gap-1.5">
-              <span>📋 ตัวอย่างรายชื่อในระบบ</span>
+              <span>📋 ทะเบียนนักกีฬาในสโมสร</span>
             </span>
             <span className="px-2 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-800">
               สถานะ: ปกติ (ACTIVE)
@@ -55,7 +55,7 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-black text-zinc-900 truncate">กิตติศักดิ์ ชัยชนะ (อาร์ม)</p>
-              <p className="text-[10px] text-zinc-500">เบอร์เสื้อ #10 • วินัยการเข้าซ้อม 95%</p>
+              <p className="text-[10px] text-zinc-500">หมายเลขประจำตัว A07 • วินัยการเข้าซ้อม 95%</p>
             </div>
             <span className="text-emerald-700 font-black text-[11px] shrink-0 bg-emerald-50 px-2 py-1 rounded-lg border border-emerald-200">
               ✓ พร้อมซ้อม
@@ -66,18 +66,18 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
     },
     {
       step: 2,
-      tabTitle: '2. ป้าย QR & รอบซ้อม',
-      badge: 'ฟังก์ชันที่ 2 • QR ถาวร & ตารางซ้อม',
-      title: 'ป้าย QR ประจำสนาม & รอบซ้อม',
-      subtitle: 'พิมพ์ป้าย A4 ติดสนามครั้งเดียว ใช้ได้ตลอดฤดูกาล ไม่ต้องปรินต์ซ้ำ',
+      tabTitle: '2. ป้าย QR ถาวร',
+      badge: 'ฟังก์ชันที่ 2 • QR ถาวรริมสนาม',
+      title: 'ป้าย QR ประจำสนาม A4 แบบถาวร',
+      subtitle: 'ปรินต์ติดข้างสนามครั้งเดียว ใช้ได้ตลอดฤดูกาล ไม่ต้องเปลี่ยนหรือพิมพ์ซ้ำ',
       icon: '📌',
       color: 'bg-blue-50 text-blue-800 border-blue-200',
       actionSteps: [
-        'กดเมนู "รอบซ้อม" &rarr; แตะ "พิมพ์ป้าย QR สนาม (A4)" นำไปติดที่ป้ายหรือผนังสนาม',
-        'ตั้งตารางซ้อมประจำได้หลายรอบต่อวัน (เช่น ซ้อมเช้า 06:00-08:00 และ ซ้อมเย็น 17:00-19:00)',
-        'แก้ไขวัน-เวลาซ้อมได้ทันทีโดย ไม่ต้องพิมพ์หรือเปลี่ยนป้าย QR ใหม่ (นักกีฬาสแกน QR เดิมได้เสมอ)',
+        'กดเมนู "รอบซ้อม" &rarr; แตะปุ่ม "🖨️ พิมพ์ป้าย QR สนาม (A4)" นำไปติดที่ผนัง ทางเข้า หรือโต๊ะโค้ชริมสนาม',
+        'แม้โค้ชจะปรับเปลี่ยนเวลาซ้อม หรือเปิดรอบซ้อมเช้า/เย็น นักกีฬาก็สแกนป้ายเดิมได้เสมอ',
+        'ระบบตรวจจับช่วงเวลาปัจจุบันและจับคู่เข้าสู่รอบซ้อมนั้นๆ ให้อัตโนมัติโดยที่โค้ชไม่ต้องเปลี่ยนป้าย',
       ],
-      quickTip: '🛡️ ปลอดภัย: มีปุ่ม "รีเซ็ต QR ใหม่" กรณีต้องการยกเลิกป้ายเก่าทันที',
+      quickTip: '🛡️ 1 ป้ายใช้ได้ทุกรอบ: สแกนเช้าเข้าซ้อมเช้า สแกนเย็นเข้าซ้อมเย็น พร้อมปุ่ม "รีเซ็ต QR ใหม่" กรณีต้องการยกเลิกป้ายเก่า',
       renderIllustration: () => (
         <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2.5 text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-zinc-200">
@@ -105,18 +105,18 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
     },
     {
       step: 3,
-      tabTitle: '3. สแกนเช็คชื่อ',
-      badge: 'ฟังก์ชันที่ 3 • สแกนหน้าสนาม',
-      title: 'นักกีฬาสแกนเช็คชื่อ & แจ้งลา',
-      subtitle: 'เปิดกล้องมือถือสแกนป้ายสนาม แตะเช็คชื่อใน 1 วินาที',
+      tabTitle: '3. สแกนริมสนาม',
+      badge: 'ฟังก์ชันที่ 3 • สแกนเช็คชื่อ & ป้องกันทิพย์',
+      title: 'สแกนเช็คชื่อริมสนาม & ระบบป้องกันเช็คชื่อทิพย์',
+      subtitle: 'เปิดกล้องมือถือสแกนป้ายสนาม แตะเช็คชื่อใน 1 วินาที พร้อมระบบแยกสิทธิ์ชัดเจน',
       icon: '📱',
       color: 'bg-purple-50 text-purple-800 border-purple-200',
       actionSteps: [
         'นักกีฬาเดินมาถึงสนาม เปิดกล้องมือถือหรือ LINE สแกนป้าย QR ประจำสนาม',
-        'พิมพ์ค้นหารหัสหรือชื่อของตนเอง',
-        'แตะปุ่มเขียว "✓ เช็คชื่อเข้าซ้อมทันที" (หากป่วยหรือไม่สะดวก ให้กดแท็บ "แจ้งลาซ้อม" และระบุเหตุผล)',
+        'พิมพ์ค้นหารหัสหรือชื่อของตนเอง แล้วแตะปุ่มเขียว "✓ เช็คชื่อเข้าซ้อมทันที" (มีเสียงสัญญาณและสั่นยืนยัน)',
+        '🛡️ ป้องกันเช็คชื่อทิพย์ (Anti-Cheat): หากแชร์ลิงก์ให้ผู้ปกครองเปิดจากที่บ้าน จะเปิดได้เฉพาะโหมด "แจ้งลาซ้อม" เท่านั้น จะเช็คชื่อเข้าซ้อมได้ต้องสแกนจากป้ายจริงริมสนาม',
       ],
-      quickTip: '🛡️ ป้องกันเช็คชื่อปลอม: ระบบตรวจจับว่าสแกนจากป้ายจริงริมสนาม และแสดงลำดับคนที่มาถึงสนาม',
+      quickTip: '⚡ Digital Pass: เมื่อเช็คชื่อสำเร็จ ระบบจะแสดงลำดับคนที่มาถึงสนาม เช่น "มาถึงเป็นคนที่ #3 ของรอบนี้" กระตุ้นความตรงต่อเวลา!',
       renderIllustration: () => (
         <div className="bg-zinc-900 text-white rounded-2xl p-3.5 space-y-2 text-xs border border-zinc-800">
           <div className="flex items-center justify-between pb-1.5 border-b border-zinc-800 text-[10px]">
@@ -143,10 +143,54 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
     },
     {
       step: 4,
-      tabTitle: '4. ตัดยอดขาด',
-      badge: 'ฟังก์ชันที่ 4 • ระบบอัตโนมัติ',
+      tabTitle: '4. รับมือเหตุฉุกเฉิน',
+      badge: 'ฟังก์ชันที่ 4 • แก้ปัญหาเฉพาะหน้าข้างสนาม',
+      title: 'การรับมือเหตุฉุกเฉินข้างสนาม',
+      subtitle: 'เด็กไม่มีมือถือ แบตหมด เน็ตหมด หรือกล้องเสีย โค้ชติ๊กชื่อสดแทนได้ทันที',
+      icon: '🆘',
+      color: 'bg-rose-50 text-rose-800 border-rose-200',
+      actionSteps: [
+        'หากนักกีฬาลืมโทรศัพท์ แบตเตอรี่หมด หรือเน็ตมีปัญหา: โค้ชเปิดหน้ารอบซ้อม (`/sessions/[id]`) บนมือถือหรือแท็บเล็ต',
+        'ใช้ช่องค้นหาพิมพ์ชื่อหรือรหัสนักกีฬา แล้วแตะปุ่มสถานะ [มา] [ขาด] [ลา] ข้างสนามได้โดยตรง',
+        'มีปุ่ม "📱 QR Code เช็คชื่อ" บนหัวตาราง สำหรับกดเปิด QR เต็มจอฉายขึ้นแท็บเล็ต หรือกดก๊อปปี้ลิงก์ส่ง LINE ให้ผู้ปกครอง',
+      ],
+      quickTip: '🎯 ค้นหาไวทันใจ: พิมพ์ 1-2 ตัวอักษร รายชื่อจะกรองทันที โค้ชติ๊กให้นักกีฬา 1 คนเสร็จใน 2 วินาที',
+      renderIllustration: () => (
+        <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2 text-xs">
+          <div className="flex items-center justify-between pb-1 border-b border-zinc-200">
+            <span className="font-bold text-zinc-700 flex items-center gap-1.5">
+              <span>🔍 แถบค้นหาด่วน & ติ๊กสถานะสด</span>
+            </span>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">
+              โค้ชจัดการได้ทันที
+            </span>
+          </div>
+          <div className="p-2.5 rounded-xl bg-white border border-zinc-200 flex items-center justify-between gap-2">
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-zinc-900 truncate">กิตติศักดิ์ ชัยชนะ (A07)</p>
+              <p className="text-[10px] text-zinc-400">ลืมโทรศัพท์ &rarr; โค้ชติ๊กสดข้างสนาม</p>
+            </div>
+            <div className="flex items-center gap-1 shrink-0">
+              <span className="px-2 py-1 rounded-md bg-emerald-600 text-white font-black text-[10px] shadow-2xs">
+                มา ✓
+              </span>
+              <span className="px-1.5 py-1 rounded-md bg-zinc-100 text-zinc-400 text-[10px]">
+                ขาด
+              </span>
+              <span className="px-1.5 py-1 rounded-md bg-zinc-100 text-zinc-400 text-[10px]">
+                ลา
+              </span>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      step: 5,
+      tabTitle: '5. ตัดยอดขาด',
+      badge: 'ฟังก์ชันที่ 5 • สรุปยอดอัตโนมัติ',
       title: 'ปิดรอบ & ตัดยอดขาดอัตโนมัติ',
-      subtitle: 'หมดเวลาซ้อม ระบบบันทึกคนที่ไม่ได้มาเป็น "ขาด" ให้อัตโนมัติ',
+      subtitle: 'หมดเวลาซ้อม ระบบบันทึกคนที่ไม่ได้มาเป็น "ขาด" ให้อัตโนมัติ โค้ชไม่ต้องกังวลเรื่องลืม',
       icon: '⏱️',
       color: 'bg-amber-50 text-amber-800 border-amber-200',
       actionSteps: [
@@ -174,19 +218,60 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
       ),
     },
     {
-      step: 5,
-      tabTitle: '5. แดชบอร์ด & Excel',
-      badge: 'ฟังก์ชันที่ 5 • สรุปผล & วิเคราะห์',
-      title: 'แดชบอร์ดสถิติ & ส่งออก Excel',
-      subtitle: 'ดูความสม่ำเสมอ จัดอันดับวินัยนักกีฬา และส่งออกรายงานใน 1 คลิก',
+      step: 6,
+      tabTitle: '6. ส่งออก Excel',
+      badge: 'ฟังก์ชันที่ 6 • รายงาน Excel มืออาชีพ',
+      title: 'ระบบส่งออกรายงาน Excel (.xlsx) 4 แผ่นงาน',
+      subtitle: 'จัดรูปแบบสวยงาม พร้อมหัวตาราง สูตรคำนวณอัตโนมัติ และแยกสรุปตามช่วงเวลา',
       icon: '📊',
       color: 'bg-emerald-50 text-emerald-800 border-emerald-200',
       actionSteps: [
-        'หน้าแดชบอร์ดแสดงผลตัวเลขอัตราการเข้าซ้อม สถิติท็อป 5 มาสม่ำเสมอ และขาดซ้อมบ่อย',
-        'บนมือถือจัดกลุ่มเป็น 3 แท็บสลับดูง่าย: [ภาพรวม] [อันดับวินัย] [รายชื่อนักกีฬา]',
-        'กดปุ่ม "ดาวน์โหลดรายงาน Excel/CSV" ได้ทันที เพื่อนำไปพิมพ์หรือรายงานต่อผู้บริหาร',
+        'แตะปุ่ม "📥 ส่งออกรายงาน (Excel)" ที่หน้าหลักหรือหน้ารอบซ้อม',
+        'เลือกช่วงเวลาที่ต้องการ: [ทั้งหมด] [เฉพาะวันนี้] [ประจำเดือนนี้] [ประจำปีนี้] หรือ [กำหนดช่วงวันเอง]',
+        'ระบบจะสร้างไฟล์ Excel (.xlsx) 4 แผ่นงานอัตโนมัติ: ภาพรวมสโมสร, สรุปรายเดือน, สรุปรายวัน และ สถิตินักกีฬา',
       ],
-      quickTip: '🏅 ดัชนีความพร้อมสโมสร: ประเมินคะแนนสโมสรเป็น Grade A / B+ / B / C ช่วยวิเคราะห์วินัยทีมได้ทันที',
+      quickTip: '💼 พร้อมส่งผู้บริหาร: หัวตารางมีสีสันคมชัด แถบสีเขียว-แดงแยกสถานะชัดเจน เปิดใน Excel หรือ Google Sheets ได้สมบูรณ์ 100%',
+      renderIllustration: () => (
+        <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2 text-xs">
+          <div className="flex items-center justify-between pb-1 border-b border-zinc-200">
+            <span className="font-bold text-zinc-700">📊 รายงาน Multi-Sheet Workbook (.xlsx)</span>
+            <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-full">v2.9.0 Pro</span>
+          </div>
+          <div className="grid grid-cols-2 gap-1.5 pt-1">
+            <div className="bg-white p-2 rounded-xl border border-zinc-200 text-center">
+              <span className="text-[10px] font-black text-zinc-800">📊 ภาพรวมสโมสร</span>
+              <p className="text-[9px] text-zinc-400">สรุปเกรด & วินัยรวม</p>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-zinc-200 text-center">
+              <span className="text-[10px] font-black text-zinc-800">📅 สรุปรายเดือน</span>
+              <p className="text-[9px] text-zinc-400">สถิติ 12 เดือนเต็มปี</p>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-zinc-200 text-center">
+              <span className="text-[10px] font-black text-zinc-800">📋 สรุปรายวัน</span>
+              <p className="text-[9px] text-zinc-400">ตารางเช็คชื่อรอบซ้อม</p>
+            </div>
+            <div className="bg-white p-2 rounded-xl border border-zinc-200 text-center">
+              <span className="text-[10px] font-black text-zinc-800">🏃 สถิตินักกีฬา</span>
+              <p className="text-[9px] text-zinc-400">สะสมรายบุคคล</p>
+            </div>
+          </div>
+        </div>
+      ),
+    },
+    {
+      step: 7,
+      tabTitle: '7. แดชบอร์ด & วินัย',
+      badge: 'ฟังก์ชันที่ 7 • วิเคราะห์ความพร้อมทีม',
+      title: 'แดชบอร์ดสถิติ & ดัชนีความพร้อมสโมสร',
+      subtitle: 'ดูความสม่ำเสมอ จัดอันดับ Top 5 วินัยนักกีฬา และประเมินเกรดความพร้อมของทีม',
+      icon: '🏆',
+      color: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+      actionSteps: [
+        'หน้าแดชบอร์ดแสดงผลตัวเลขอัตราการเข้าซ้อม สถิติท็อป 5 มาสม่ำเสมอ และกลุ่มที่ขาดซ้อมบ่อย',
+        'ดัชนีความพร้อมสโมสร: ประเมินคะแนนสโมสรเป็น Grade A / B+ / B / C ช่วยวิเคราะห์วินัยทีมได้ทันที',
+        'บนมือถือจัดกลุ่มเป็น 3 แท็บสลับดูง่าย: [ภาพรวม] [อันดับวินัย] [รายชื่อนักกีฬา] โค้ชดูสถิติได้สะดวกรวดเร็วข้างสนาม',
+      ],
+      quickTip: '🏅 ติดตามเฉพาะราย: แตะที่ชื่อนักกีฬาเพื่อดูสถิติเดี่ยว หรือส่งออกใบบันทึกสถิติรายบุคคลเป็น Excel ได้ทันที',
       renderIllustration: () => (
         <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2 text-xs">
           <div className="flex items-center justify-between pb-1 border-b border-zinc-200">
@@ -206,20 +291,19 @@ export default function UserGuideModal({ autoOpen = false }: UserGuideModalProps
       ),
     },
     {
-      step: 6,
-      tabTitle: '6. แจ้งปัญหา & ฟีดแบ็ก',
-      badge: 'ฟังก์ชันที่ 6 • ศูนย์ช่วยเหลือ & ข้อเสนอแนะ',
-      title: 'แจ้งปัญหา & ส่งข้อเสนอแนะ (Feedback)',
-      subtitle: 'ส่งเรื่องได้ทันทีใน 1 คลิก ไม่ต้องมีบัญชี GitHub ปัญหาจะถูกบันทึกถึงทีมงานทันที',
+      step: 8,
+      tabTitle: '8. ช่วยเหลือ & แอดมิน',
+      badge: 'ฟังก์ชันที่ 8 • ศูนย์ช่วยเหลือ & แอดมิน',
+      title: 'แจ้งปัญหา ส่งฟีดแบ็ก & สลับการดูแลสโมสร',
+      subtitle: 'ส่งเรื่องตรงถึงผู้พัฒนา และเครื่องมือจัดการหลายสโมสรสำหรับผู้บริหาร',
       icon: '💬',
-      color: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+      color: 'bg-zinc-100 text-zinc-900 border-zinc-300',
       actionSteps: [
-        'กดปุ่ม "💬 แจ้งปัญหา/ข้อเสนอแนะ" ที่เมนูด้านซ้าย (หรือแถบเมนูด้านบนบนมือถือ)',
-        'เลือกประเภทเรื่อง: [แจ้งบัค/ปัญหา] [ขอฟีเจอร์ใหม่] [ระบบทำงานช้า] หรือ [อื่นๆ]',
-        'พิมพ์หัวข้อและรายละเอียด (ระบุ LINE ID หรือเบอร์ติดต่อ เพื่อให้ทีมงานติดต่อกลับได้)',
-        'กด "ส่งรายงานปัญหา" ข้อมูลจะถูกบันทึกเข้าสู่ระบบฐานข้อมูลทันที ทีมงานและแอดมินจะคอยตรวจสอบในระบบ',
+        'หากพบปัญหาหรือมีข้อเสนอแนะ: กดปุ่ม "💬 แจ้งปัญหา/ข้อเสนอแนะ" ที่เมนูด้านซ้าย เพื่อส่งรายงานบัคหรือขอฟีเจอร์ใหม่ ไม่ต้องมีบัญชี GitHub',
+        'ระบบจะแนบข้อมูลเครื่องและเวอร์ชันให้อัตโนมัติ ช่วยให้ทีมงานแก้ปัญหาได้อย่างตรงจุดและรวดเร็ว',
+        'สำหรับผู้บริหารที่มีหลายสโมสร: ใช้เมนู "👑 ผู้ดูแลระบบ" เพื่อสร้างสโมสรใหม่ และสลับเข้าดูข้อมูลแต่ละสโมสรได้อย่างอิสระ แยกข้อมูลปลอดภัย 100%',
       ],
-      quickTip: '⚡ ดึงข้อมูลเครื่องให้อัตโนมัติ: ระบบจะแนบเวอร์ชันและหน้าเว็บที่มีปัญหาไปด้วย ช่วยให้ทีมงานแก้ปัญหาได้อย่างตรงจุดและรวดเร็ว',
+      quickTip: '⚡ ติดต่อสะดวก: ฝากเบอร์โทรหรือ LINE ID ในกล่องฟีดแบ็ก เพื่อให้ทีมงานติดต่อกลับหรือช่วยดูแลการใช้งานได้ตลอดเวลา',
       renderIllustration: () => (
         <div className="bg-zinc-50 border border-zinc-200/90 rounded-2xl p-3.5 space-y-2 text-xs">
           <div className="flex items-center justify-between pb-1.5 border-b border-zinc-200">

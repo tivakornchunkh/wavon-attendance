@@ -10,6 +10,7 @@ import { autoCloseExpiredSessions } from '../../actions/session.actions';
 import CheckInRoster from './CheckInRoster';
 import CancelSessionButton from './CancelSessionButton';
 import EditSessionModal from '../EditSessionModal';
+import QrCheckInModal from './QrCheckInModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -40,6 +41,9 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
   const { session, roster } = rosterData;
   const auditLogs = await attendanceService.getSessionAuditLogs(sessionId);
 
+  const livePresent = roster.filter((r) => r.status === 'PRESENT').length;
+  const liveLeave = roster.filter((r) => r.status === 'LEAVE').length;
+
   return (
     <div className="space-y-6 sm:space-y-8">
       {/* Header & Back Link */}
@@ -69,6 +73,15 @@ export default async function SessionDetailPage({ params }: SessionDetailPagePro
           </div>
 
           <div className="flex items-center gap-2.5 flex-wrap">
+            <QrCheckInModal
+              sessionId={sessionId}
+              sessionTitle={session.title}
+              sessionDate={session.date}
+              sessionTime={`${session.startTime} - ${session.endTime} น.`}
+              livePresent={livePresent}
+              liveLeave={liveLeave}
+              totalAthletes={roster.length}
+            />
             <EditSessionModal
               session={{
                 id: sessionId,

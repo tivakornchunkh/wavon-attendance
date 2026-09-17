@@ -7,6 +7,7 @@ import { getCurrentSession } from '../../../src/server/helpers/auth';
 import { teams } from '../../../src/server/db/schema';
 import { eq } from 'drizzle-orm';
 import DeleteAthleteButton from './DeleteAthleteButton';
+import EditAthleteModal from './EditAthleteModal';
 
 export const dynamic = 'force-dynamic';
 
@@ -95,6 +96,16 @@ export default async function AthleteDetailPage({ params }: AthleteDetailPagePro
           </div>
 
           <div className="self-stretch sm:self-auto flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
+            <EditAthleteModal
+              athlete={{
+                id: athlete.id,
+                name: athlete.name,
+                athleteCode: athlete.athleteCode,
+                phone: athlete.phone,
+                startDate: athlete.startDate,
+                status: athlete.status as 'ACTIVE' | 'INACTIVE',
+              }}
+            />
             <Link
               href={`/api/export/attendance?athleteId=${athlete.id}`}
               download

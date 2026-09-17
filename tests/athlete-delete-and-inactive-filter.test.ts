@@ -166,4 +166,39 @@ describe('Athlete Management & Inactive Filtering (v2.2.0)', () => {
     const remainingAttendances = await db.select().from(schema.attendances);
     expect(remainingAttendances.length).toBe(0);
   });
+
+  it('updates athlete information including name, code, phone, and status', async () => {
+    const athlete = await athleteService.createAthlete({
+      teamId,
+      name: 'สมเกียรติ เดิม',
+      athleteCode: 'OLD-01',
+      phone: '081-111-1111',
+      startDate: '2026-01-01',
+      status: 'ACTIVE',
+    });
+
+    const updated = await athleteService.updateAthlete(
+      athlete.id,
+      {
+        name: 'สมเกียรติ อัปเดตใหม่',
+        athleteCode: 'NEW-01',
+        phone: '089-999-9999',
+        startDate: '2026-02-01',
+        status: 'INACTIVE',
+      },
+      teamId
+    );
+
+    expect(updated.name).toBe('สมเกียรติ อัปเดตใหม่');
+    expect(updated.athleteCode).toBe('NEW-01');
+    expect(updated.phone).toBe('089-999-9999');
+    expect(updated.startDate).toBe('2026-02-01');
+    expect(updated.status).toBe('INACTIVE');
+
+    // Verify in db
+    const found = await athleteRepo.findById(athlete.id);
+    expect(found?.name).toBe('สมเกียรติ อัปเดตใหม่');
+    expect(found?.athleteCode).toBe('NEW-01');
+    expect(found?.status).toBe('INACTIVE');
+  });
 });

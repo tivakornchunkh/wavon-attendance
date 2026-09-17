@@ -6,7 +6,7 @@ import { AthleteRepository } from '../../src/server/repositories/athlete.repo';
 import { AthleteService } from '../../src/core/services/athlete.service';
 import { getCurrentSession } from '../../src/server/helpers/auth';
 import { DEFAULT_TEAM_ID } from '../../src/server/helpers/default-team';
-import { CreateAthleteSchema, CreateBatchAthletesSchema, parseRosterText } from '../../src/core/validators/athlete.validator';
+import { CreateAthleteSchema, CreateBatchAthletesSchema, UpdateAthleteSchema, parseRosterText } from '../../src/core/validators/athlete.validator';
 
 const athleteRepo = new AthleteRepository(db);
 const athleteService = new AthleteService(athleteRepo);
@@ -131,4 +131,57 @@ export async function deleteAthleteAction(athleteId: string): Promise<{ success:
     };
   }
 }
+
+export async function updateAthleteAction(
+  formData: FormData
+): Promise<{ success: boolean; athlete?: { id: string; name: string; athleteCode: string }; error?: string }> {
+  try {
+    const session = await getCurrentSession();
+    const teamId = session.team?.id || DEFAULT_TEAM_ID;
+
+    const id = formData.get('id') as string;
+    if (!id) {
+      return { success: false, error: 'ไม่พบรหัสนักกีฬา' };
+    }
+
+    const name = (formData.get('name') as string) || undefined;
+    const athleteCode = (formData.get('athleteCode') as string) || undefined;
+    const phone = (formData.get('phone') as string) || null;
+    const startDate = (formData.get('startDate') as string) || undefined;
+    const status = (formData.get('status') as 'ACTIVE' | 'INACTIVE') || undefined;
+
+    const validated = UpdateAthleteSchema.parse({
+      name: name?.trim(),
+      athleteCode: athleteCode ? athleteCode.trim() : undefined,
+      phone: phone ? phone.trim() : null,
+      startDate,
+      status,
+    });
+
+    const updated = await athleteService.updateAthlete(id, validated, teamId);
+
+    try {
+      revalidatePath('/athletes');
+      revalidatePath(`/athletes/${id}`);
+      revalidatePath('/');
+      revalidatePath('/sessions');
+    } catch {}
+
+    return {
+      success: true,
+      athlete: {
+        id: updated.id,
+        name: updated.name,
+        athleteCode: updated.athleteCode,
+      },
+    };
+  } catch (err: unknown) {
+    console.error('updateAthleteAction error:', err);
+    return {
+      success: false,
+      error: err instanceof Error ? err.message : 'เกิดข้อผิดพลาดในการแก้ไขข้อมูลนักกีฬา',
+    };
+  }
+}
+
 
