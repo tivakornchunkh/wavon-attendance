@@ -78,7 +78,7 @@ npm run build
 
 ## ผู้พัฒนา
 
-ออกแบบและพัฒนาโดย **ทิวากร จันทร์คง (อาร์ม - Arm)**
+ออกแบบและพัฒนาโดย **Tivakorn Chunkhun(อาร์ม - Arm)**
 
 - GitHub: [tivakornchunkh](https://github.com/tivakornchunkh)
 - Facebook: [Arm x tivakorn](https://www.facebook.com/arm.x.tivakorn)
